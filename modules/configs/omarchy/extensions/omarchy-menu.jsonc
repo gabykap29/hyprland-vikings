@@ -1,9 +1,10 @@
 {
-  "style.background": {"icon":"","label":"Background","aliases":["background","wallpaper"],"action":"~/.config/omarchy/plugins/tenzin.live-wallpaper/live-wallpaper.sh"},
-  "style.valhalla-world": {"icon":"ᛟ","iconFont":"Noto Sans Runic","label":"Valhalla Pixel World","aliases":["valhalla","weather","clima","pixel"]},
-  "style.valhalla-world.rain": {"icon":"ᛚ","iconFont":"Noto Sans Runic","label":"Lluvia Nórdica (Kattegat)","action":"~/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl preset rain"},
-  "style.valhalla-world.storm": {"icon":"ᛋ","iconFont":"Noto Sans Runic","label":"Tormenta de Thor","action":"~/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl preset storm"},
-  "style.valhalla-world.snow": {"icon":"ᛁ","iconFont":"Noto Sans Runic","label":"Ventisca de Jotunheim","action":"~/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl preset snow"},
-  "style.valhalla-world.clear": {"icon":"ᛞ","iconFont":"Noto Sans Runic","label":"Noche de Aurora","action":"~/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl preset clear"},
-  "style.valhalla-world.toggle": {"icon":"ᛏ","iconFont":"Noto Sans Runic","label":"Activar / Desactivar Mundo Pixel","action":"~/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl toggle"}
+  "style.background": {"icon":"","label":"Background","aliases":["background","wallpaper"],"action":"~/.config/omarchy/plugins/tenzin.live-wallpaper/live-wallpaper.sh"},
+  "style.hyprland-viking": {"icon":"ᛟ","iconFont":"Noto Sans Runic","label":"Hyprland Viking","aliases":["viking","valhalla","weather","clima","pixel","wallpaper"]},
+  "style.hyprland-viking.settings": {"icon":"ᛉ","iconFont":"Noto Sans Runic","label":"Configuración","aliases":["settings","config","ajustes","ciudad"],"action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl settings"},
+  "style.hyprland-viking.rain": {"icon":"ᛚ","iconFont":"Noto Sans Runic","label":"Lluvia Nórdica","action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl preset rain"},
+  "style.hyprland-viking.storm": {"icon":"ᛋ","iconFont":"Noto Sans Runic","label":"Tormenta de Thor","action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl preset storm"},
+  "style.hyprland-viking.snow": {"icon":"ᛁ","iconFont":"Noto Sans Runic","label":"Ventisca de Jotunheim","action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl preset snow"},
+  "style.hyprland-viking.clear": {"icon":"ᛞ","iconFont":"Noto Sans Runic","label":"Noche de Aurora","action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl preset clear"},
+  "style.hyprland-viking.toggle": {"icon":"ᛏ","iconFont":"Noto Sans Runic","label":"Activar / Desactivar Mundo Pixel","action":"~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl toggle"}
 }

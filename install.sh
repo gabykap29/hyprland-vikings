@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# ᛟ OMARCHY VALHALLA — Modular Installer for Omarchy + Hyprland
+# ᛟ HYPRLAND VIKING — Modular Installer for Omarchy + Hyprland
 # ============================================================================
 set -euo pipefail
 
@@ -19,7 +19,7 @@ ANY_SELECTED=0
 usage() {
   cat <<EOF
 ╔══════════════════════════════════════════════════════════════════════╗
-║        ᛟ  OMARCHY VALHALLA — INSTALADOR MODULAR VIKINGO  ᛟ          ║
+║        ᛟ  HYPRLAND VIKING — INSTALADOR MODULAR VIKINGO  ᛟ           ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 Uso:
@@ -32,12 +32,12 @@ Opciones de Módulos:
   --theme        Instala el tema nórdico 'valhalla' y sus fondos
   --bar          Instala la barra HUD estilo AC Valhalla y los 9 Reinos
   --menu         Instala el menú con medallones rúnicos Elder Futhark
-  --world        Instala el Live Wallpaper 16-bit Pixel Art Viking World
+  --world        Instala el Live Wallpaper pixel art configurable (escenas + panel de ajustes)
   --configs      Instala configuraciones de Hyprland, Hyprlock, Fastfetch y Omarchy
 
 Opciones Generales:
   --no-backup    Omite el respaldo previo a la instalación
-  --uninstall    Desinstala Omarchy Valhalla y restaura el backup previo
+  --uninstall    Desinstala Hyprland Viking y restaura el backup previo
   -h, --help     Muestra esta ayuda
 EOF
 }
@@ -69,11 +69,32 @@ install_module_menu() {
 }
 
 install_module_world() {
-  echo "🌧️  [Módulo: Pixel Viking World] Instalando motor 16-bit gabriel.valhalla-world..."
-  mkdir -p "$HOME/.config/omarchy/plugins"
-  rm -rf "$HOME/.config/omarchy/plugins/gabriel.valhalla-world"
-  cp -r "$MODULES_DIR/world/gabriel.valhalla-world" "$HOME/.config/omarchy/plugins/gabriel.valhalla-world"
-  chmod +x "$HOME/.config/omarchy/plugins/gabriel.valhalla-world/valhalla-world-ctl"
+  local plugin_src="$MODULES_DIR/world/gabriel.hyprland-viking"
+  local plugin_dst="$HOME/.config/omarchy/plugins/gabriel.hyprland-viking"
+  local user_dir="$HOME/.config/hyprland-viking"
+  local legacy="$HOME/.config/omarchy/plugins/gabriel.valhalla-world"
+
+  echo "🌧️  [Módulo: Hyprland Viking World] Instalando gabriel.hyprland-viking..."
+  mkdir -p "$HOME/.config/omarchy/plugins" "$user_dir"
+  rm -rf "$plugin_dst"
+  cp -r "$plugin_src" "$plugin_dst"
+  chmod +x "$plugin_dst/hyprland-viking-ctl"
+
+  # Settings live outside the plugin dir so reinstalling never resets them.
+  if [[ ! -f "$user_dir/weather.json" ]]; then
+    if [[ -f "$legacy/weather.json" ]]; then
+      cp "$legacy/weather.json" "$user_dir/weather.json"
+    else
+      cp "$plugin_src/config/weather.default.json" "$user_dir/weather.json"
+    fi
+  fi
+  # config.json is created by the plugin on first run with its defaults.
+
+  # Migrate from the old Omarchy Valhalla plugin id.
+  if [[ -d "$legacy" ]]; then
+    echo "   ↪ Eliminando plugin anterior gabriel.valhalla-world"
+    rm -rf "$legacy"
+  fi
 }
 
 install_module_configs() {
@@ -165,7 +186,7 @@ if [[ "$ANY_SELECTED" -eq 0 ]]; then
 fi
 
 echo "╔══════════════════════════════════════════════════════════════════════╗"
-echo "║        ⚔️  INICIANDO INSTALACIÓN DE OMARCHY VALHALLA  ⚔️            ║"
+echo "║        ⚔️  INICIANDO INSTALACIÓN DE HYPRLAND VIKING  ⚔️             ║"
 echo "╚══════════════════════════════════════════════════════════════════════╝"
 
 if [[ "$DO_BACKUP" -eq 1 ]]; then
@@ -181,6 +202,7 @@ fi
 reload_environment
 
 echo ""
-echo "✨ ¡SKÅL! Omarchy Valhalla se ha instalado correctamente."
-echo "   • Para cambiar el clima en vivo: Super + Alt + Space -> Style -> Valhalla Live World"
-echo "   • Para sincronizar con clima real (Open-Meteo): ./scripts/weather-api-sync.sh"
+echo "✨ ¡SKÅL! Hyprland Viking se ha instalado correctamente."
+echo "   • Panel de configuración: Super + Alt + Space -> Style -> Hyprland Viking -> Configuración"
+echo "     o desde la terminal: ~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl settings"
+echo "   • Clima real (Open-Meteo, modo automático): ./scripts/weather-api-sync.sh"

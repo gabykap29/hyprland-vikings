@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # ============================================================================
-# uninstall.sh — Desinstala los módulos de Valhalla y restaura el backup previo
+# uninstall.sh — Desinstala los módulos de Hyprland Viking y restaura el backup previo
 # ============================================================================
 set -euo pipefail
 
-BACKUP_DIR="${1:-$HOME/.config/omarchy-backup-pre-valhalla}"
+BACKUP_DIR="${1:-$HOME/.config/omarchy-backup-pre-hyprland-viking}"
+# Backups made by the old "Omarchy Valhalla" installer
+if [[ ! -d "$BACKUP_DIR" && -d "$HOME/.config/omarchy-backup-pre-valhalla" ]]; then
+  BACKUP_DIR="$HOME/.config/omarchy-backup-pre-valhalla"
+fi
 
-echo "⚔️  [Uninstall] Desinstalando plugins de Omarchy Valhalla..."
+echo "⚔️  [Uninstall] Desinstalando plugins de Hyprland Viking..."
 rm -rf "$HOME/.config/omarchy/plugins/gabriel.bar"
 rm -rf "$HOME/.config/omarchy/plugins/gabriel.workspaces"
 rm -rf "$HOME/.config/omarchy/plugins/gabriel.menu"
-rm -rf "$HOME/.config/omarchy/plugins/gabriel.valhalla-world"
+rm -rf "$HOME/.config/omarchy/plugins/gabriel.hyprland-viking"
+rm -rf "$HOME/.config/omarchy/plugins/gabriel.valhalla-world"   # legacy id
+echo "   (tu configuración en ~/.config/hyprland-viking se conserva)"
 
 if [[ -f "$BACKUP_DIR/restore.sh" ]]; then
   echo "🔄 [Uninstall] Ejecutando script de restauración original ($BACKUP_DIR/restore.sh)..."

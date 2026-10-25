@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# hyprland-viking-ctl — thin CLI over the running plugin's IPC handler.
+set -euo pipefail
+
+TARGET="gabriel.hyprland-viking"
+call() { omarchy-shell "$TARGET" "$@"; }
+
+usage() {
+  cat >&2 <<USAGE
+Uso: $0 <comando>
+
+  settings                 Abre/cierra el panel de configuración
+  preset <rain|storm|snow|clear>   Clima manual
+  scene <id>               Cambia la visualización
+  city <nombre>            Guarda tu ciudad
+  time <auto|night|dawn|day|dusk>  Hora del día
+  weather-mode <manual|auto>
+  api-json <json>          Empuja un clima normalizado (modo auto)
+  toggle                   Activa/desactiva el fondo animado
+  thunder                  Dispara un rayo
+  status                   Muestra configuración y estado
+  config                   Imprime ~/.config/hyprland-viking/config.json
+USAGE
+  exit 1
+}
+
+cmd="${1:-status}"
+arg="${2:-}"
+
+case "$cmd" in
+  settings)                call toggleSettings ;;
+  preset)
+    case "$arg" in
+      rain|lluvia)          call preset rain ;;
+      storm|tormenta)       call preset storm ;;
+      snow|nieve)           call preset snow ;;
+      clear|aurora|despejado) call preset clear ;;
+      *) usage ;;
+    esac ;;
+  scene)                   [[ -n "$arg" ]] || usage; call setScene "$arg" ;;
+  city)                    call setCity "$arg" ;;
+  time)                    [[ -n "$arg" ]] || usage; call setTimeOfDay "$arg" ;;
+  weather-mode)            [[ -n "$arg" ]] || usage; call setWeatherMode "$arg" ;;
+  api-json)                [[ -n "$arg" ]] || usage; call setWeather "$arg" ;;
+  toggle|thunder|status)   call "$cmd" ;;
+  config)                  cat "$HOME/.config/hyprland-viking/config.json" ;;
+  *)                       usage ;;
+esac

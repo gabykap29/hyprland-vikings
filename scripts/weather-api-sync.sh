@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================================
 # weather-api-sync.sh — Conector de API de Clima Real (Open-Meteo) para
-# gabriel.valhalla-world (Sin necesidad de API Key)
+# gabriel.hyprland-viking (Sin necesidad de API Key)
+#
+# Solo tiene efecto con "Clima > Automático" activado en el panel de configuración.
 #
 # Uso:
 #   ./scripts/weather-api-sync.sh [LAT] [LON] [NOMBRE_CIUDAD]
@@ -13,7 +15,7 @@ set -euo pipefail
 LAT="${1:--34.6037}"
 LON="${2:--58.3816}"
 LOCATION_NAME="${3:-Midgard · Clima Real}"
-WEATHER_FILE="$HOME/.config/omarchy/plugins/gabriel.valhalla-world/weather.json"
+WEATHER_FILE="$HOME/.config/hyprland-viking/weather.json"
 
 API_URL="https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,precipitation,rain,snowfall,weather_code,wind_speed_10m"
 
@@ -87,7 +89,7 @@ mkdir -p "$(dirname "$WEATHER_FILE")"
 printf '%s\n' "$PAYLOAD" > "$WEATHER_FILE"
 
 if command -v omarchy-shell >/dev/null 2>&1; then
-  omarchy-shell gabriel.valhalla-world setWeather "$(printf '%s' "$PAYLOAD" | tr -d '\n')" >/dev/null 2>&1 || true
+  omarchy-shell gabriel.hyprland-viking setWeather "$(printf '%s' "$PAYLOAD" | tr -d '\n')" >/dev/null 2>&1 || true
 fi
 
 echo "✅ Clima sincronizado en $WEATHER_FILE:"

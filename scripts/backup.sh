@@ -4,7 +4,7 @@
 # ============================================================================
 set -euo pipefail
 
-BACKUP_BASE="${1:-$HOME/.config/omarchy-backup-pre-valhalla}"
+BACKUP_BASE="${1:-$HOME/.config/omarchy-backup-pre-hyprland-viking}"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
 if [[ -d "$BACKUP_BASE" ]]; then

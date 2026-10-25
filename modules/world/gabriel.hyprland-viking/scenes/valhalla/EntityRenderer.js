@@ -1,4 +1,5 @@
 .pragma library
+.import "Palettes.js" as Palettes
 
 // ============================================================================
 // EntityRenderer.js
@@ -379,25 +380,29 @@ function drawDrakkar(ctx, t) {
   ctx.fillRect(70 - foam, sy + 8, 6, 1)
 }
 
-function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
+function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY, env) {
   if (!sim) return
+  var pal = Palettes.forPhase(env && env.tod)
+  var fx = (env && env.effects) || {}
+  var auroraNow = weather.auroraIntensity * pal.auroraFactor
   var t = sim.tick
 
   // 1. Twinkling Stars
-  for (var si = 0; si < sim.stars.length; si++) {
+  var starAlpha = (fx.stars === false) ? 0 : pal.starFactor
+  for (var si = 0; starAlpha > 0 && si < sim.stars.length; si++) {
     var st = sim.stars[si]
     var tw = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.03 + st.phase))
-    ctx.fillStyle = "rgba(220, 240, 250, " + (tw * (1.0 - weather.rainIntensity * 0.45)).toFixed(2) + ")"
+    ctx.fillStyle = "rgba(220, 240, 250, " + (tw * starAlpha * (1.0 - weather.rainIntensity * 0.45)).toFixed(2) + ")"
     ctx.fillRect(st.x, st.y, st.size, st.size)
   }
 
   // 2. Animated Aurora Borealis
-  if (weather.auroraIntensity > 0.05) {
+  if (auroraNow > 0.05) {
     for (var ax = 0; ax < w; ax += 3) {
       var wave1 = Math.sin(ax * 0.022 + t * 0.025) * 10 + Math.cos(ax * 0.05 - t * 0.018) * 5
       var ay = Math.floor(26 + wave1)
       var ah = Math.floor(14 + Math.sin(ax * 0.04 + t * 0.03) * 8)
-      var alpha = (0.14 + 0.14 * Math.sin(ax * 0.03 + t * 0.02)) * weather.auroraIntensity
+      var alpha = (0.14 + 0.14 * Math.sin(ax * 0.03 + t * 0.02)) * auroraNow
       ctx.fillStyle = "rgba(78, 205, 196, " + alpha.toFixed(3) + ")"
       ctx.fillRect(ax, ay, 2, ah)
       ctx.fillStyle = "rgba(240, 186, 101, " + (alpha * 0.55).toFixed(3) + ")"
@@ -479,12 +484,12 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
   }
 
   // 8. Autonomous Vikings
-  for (var vi = 0; vi < sim.vikings.length; vi++) {
+  for (var vi = 0; fx.vikings !== false && vi < sim.vikings.length; vi++) {
     drawPixelViking(ctx, sim.vikings[vi], t, groundY)
   }
 
   // 9. Ravens (Huginn & Muninn)
-  for (var ri = 0; ri < sim.ravens.length; ri++) {
+  for (var ri = 0; fx.ravens !== false && ri < sim.ravens.length; ri++) {
     var rv = sim.ravens[ri]
     var rx = Math.round(rv.x)
     var ry = Math.round(rv.y)
@@ -504,7 +509,7 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
   // 10. Animated Fjord Water: depth gradient, travelling swells, moon / aurora / hall reflections
   var waterTop = waterY
   var bayTop = waterY - 8                                          // the bay in front of the pier is higher
-  var depthBands = ["#0d2232", "#0b1d2b", "#091825", "#07131e", "#060f18", "#050c14"]
+  var depthBands = pal.water
   var bandH = Math.ceil((h - waterY) / depthBands.length)
   for (var wb = 0; wb < depthBands.length; wb++) {
     ctx.fillStyle = depthBands[wb]
@@ -514,7 +519,7 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
       for (var wdx = wb % 2; wdx < w; wdx += 4) ctx.fillRect(wdx, waterY + wb * bandH, 2, 1)
     }
   }
-  ctx.fillStyle = "#0d2232"
+  ctx.fillStyle = pal.bay
   ctx.fillRect(0, bayTop, 126, 8)                                  // bay under the drakkar
   ctx.fillStyle = "rgba(120, 200, 215, 0.30)"
   for (var bx2 = 0; bx2 < 126; bx2 += 6) ctx.fillRect(bx2 + Math.round(Math.sin(t * 0.07 + bx2) * 1), bayTop, 3, 1)
@@ -522,13 +527,14 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
   ctx.fillRect(14, bayTop + 1, 62, 2)                              // hull shadow on the swell
 
   // Moon column: broken, shimmering pillar of light
-  for (var my = bayTop + 2; my < h; my += 2) {
+  var colX = pal.celX
+  for (var my = (colX < 126 ? bayTop + 2 : waterY); my < h; my += 2) {
     var mdepth = (my - waterY) / (h - waterY)
     var mshift = Math.round(Math.sin(my * 0.5 + t * 0.1) * (2 + mdepth * 3))
     var mw2 = Math.max(2, Math.floor(10 - mdepth * 4)) + ((my >> 1) % 3)
     var shimmer = 0.55 + 0.45 * Math.sin(my * 0.9 + t * 0.15)
-    ctx.fillStyle = "rgba(225, 240, 245, " + ((1.0 - mdepth * 0.7) * 0.34 * shimmer).toFixed(2) + ")"
-    ctx.fillRect(57 - Math.floor(mw2 / 2) + mshift, my, mw2, 1)
+    ctx.fillStyle = "rgba(" + pal.celGlow + ", " + ((1.0 - mdepth * 0.7) * 0.34 * shimmer).toFixed(2) + ")"
+    ctx.fillRect(colX - Math.floor(mw2 / 2) + mshift, my, mw2, 1)
   }
 
   for (var wy = waterY; wy < h; wy += 2) {
@@ -548,11 +554,11 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
     }
 
     // Aurora reflection (teal ribbons with gold fringe)
-    ctx.fillStyle = "rgba(56, 178, 166, " + ((1.0 - depth) * 0.20 * weather.auroraIntensity).toFixed(2) + ")"
+    ctx.fillStyle = "rgba(56, 178, 166, " + ((1.0 - depth) * 0.20 * auroraNow).toFixed(2) + ")"
     for (var wx = (wy * 7) % 16; wx < w; wx += 18) {
       ctx.fillRect(wx + shift, wy, 6 + (wy % 4), 1)
     }
-    ctx.fillStyle = "rgba(240, 186, 101, " + ((1.0 - depth) * 0.05 * weather.auroraIntensity).toFixed(3) + ")"
+    ctx.fillStyle = "rgba(240, 186, 101, " + ((1.0 - depth) * 0.05 * auroraNow).toFixed(3) + ")"
     for (var gx = (wy * 5) % 23; gx < w; gx += 31) ctx.fillRect(gx - shift, wy, 3, 1)
 
     // Warm torch / forge / hall-window reflections
@@ -621,5 +627,11 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY) {
       var snf = sim.snowflakes[sni]
       ctx.fillRect(Math.round(snf.x), Math.round(snf.y), 2, 2)
     }
+  }
+
+  // 14. Time-of-day colour grade
+  if (pal.tint) {
+    ctx.fillStyle = pal.tint
+    ctx.fillRect(0, 0, w, h)
   }
 }

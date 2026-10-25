@@ -1,4 +1,5 @@
 .pragma library
+.import "Palettes.js" as Palettes
 
 // ============================================================================
 // BackdropRenderer.js
@@ -6,18 +7,11 @@
 // Blacksmith Forge, Runestone Sanctuary, and Wooden Pier)
 // ============================================================================
 
-function renderBackdrop(ctx, w, h, groundY, waterY) {
+function renderBackdrop(ctx, w, h, groundY, waterY, env) {
+  var pal = Palettes.forPhase(env && env.tod)
   // 1. Night sky: indigo-to-teal gradient, ordered dithering between bands
-  var skyBands = [
-    { y: 0,   c: "#03060c" },
-    { y: 22,  c: "#050b14" },
-    { y: 44,  c: "#070f1c" },
-    { y: 66,  c: "#0a1626" },
-    { y: 86,  c: "#0e1e30" },
-    { y: 104, c: "#132a3b" },
-    { y: 122, c: "#1a3547" },
-    { y: 140, c: "#234656" }
-  ]
+  var skyYs = [0, 22, 44, 66, 86, 104, 122, 140]
+  var skyBands = skyYs.map(function(y, i) { return { y: y, c: pal.sky[i] } })
   for (var sb = 0; sb < skyBands.length; sb++) {
     var bandEnd = (sb + 1 < skyBands.length) ? skyBands[sb + 1].y : 168
     ctx.fillStyle = skyBands[sb].c
@@ -32,7 +26,7 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
   }
 
   // Milky Way: faint diagonal dust of stars
-  for (var mw = 0; mw < 170; mw++) {
+  for (var mw = 0; pal.milkyWay && mw < 170; mw++) {
     var mwx = (mw * 53) % w
     var mwy = Math.floor(96 - mwx * 0.22 + (((mw * 37) % 29) - 14))
     if (mwy < 4 || mwy > 120) continue
@@ -40,6 +34,27 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
     ctx.fillRect(mwx, mwy, 1, 1)
   }
 
+  if (pal.celestial === "sun") {
+    var SX = pal.celX, SY = pal.celY
+    for (var gy = -20; gy <= 20; gy++) {
+      for (var gx = -20; gx <= 20; gx++) {
+        var gd = Math.sqrt(gx * gx + gy * gy)
+        if (gd > 6 && gd < 20 && ((gx + gy) & 1) === 0) {
+          ctx.fillStyle = "rgba(" + pal.celGlow + ", " + (gd < 10 ? "0.20" : (gd < 15 ? "0.10" : "0.05")) + ")"
+          ctx.fillRect(SX + gx, SY + gy, 1, 1)
+        }
+      }
+    }
+    for (var uy = -6; uy <= 6; uy++) {
+      for (var ux = -6; ux <= 6; ux++) {
+        var ud = ux * ux + uy * uy
+        if (ud <= 36) {
+          ctx.fillStyle = ud <= 16 ? pal.sunCore : pal.sunEdge
+          ctx.fillRect(SX + ux, SY + uy, 1, 1)
+        }
+      }
+    }
+  } else {
   // Crescent moon with halo, craters and rim light
   var MX = 57, MY = 28
   for (var hy = -22; hy <= 22; hy++) {
@@ -66,6 +81,8 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
   ctx.fillRect(MX - 4, MY + 5, 3, 2)
   ctx.fillRect(MX - 8, MY - 3, 1, 2)
 
+  }
+
   // Drifting cloud banks, rim-lit by the moon
   var clouds = [
     { x: 6,   y: 52,  w: 54 }, { x: 96,  y: 38, w: 70 }, { x: 188, y: 60, w: 64 },
@@ -74,53 +91,53 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
   ]
   for (var ci = 0; ci < clouds.length; ci++) {
     var cl = clouds[ci]
-    ctx.fillStyle = "rgba(6, 14, 24, 0.62)"
+    ctx.fillStyle = pal.cloud.body
     ctx.fillRect(cl.x + 8, cl.y, cl.w - 16, 2)
     ctx.fillRect(cl.x + 2, cl.y + 2, cl.w - 4, 3)
     ctx.fillRect(cl.x + 10, cl.y + 5, cl.w - 22, 2)
-    ctx.fillStyle = "rgba(120, 175, 195, 0.20)"
+    ctx.fillStyle = pal.cloud.rim
     ctx.fillRect(cl.x + 8, cl.y, cl.w - 16, 1)
     ctx.fillRect(cl.x + 2, cl.y + 2, 6, 1)
-    ctx.fillStyle = "rgba(70, 130, 150, 0.14)"
+    ctx.fillStyle = pal.cloud.under
     ctx.fillRect(cl.x + 12, cl.y + 6, cl.w - 26, 1)
   }
 
   // Cold horizon glow
   for (var gl = 0; gl < 28; gl++) {
-    ctx.fillStyle = "rgba(78, 205, 196, " + (0.005 * gl * 0.6).toFixed(3) + ")"
+    ctx.fillStyle = "rgba(" + pal.glowRGB + ", " + (0.003 * gl * pal.glowScale).toFixed(3) + ")"
     ctx.fillRect(0, 118 + gl * 2, w, 2)
   }
 
   // 2. Far Fjord Mountains
-  ctx.fillStyle = "#0c1822"
+  ctx.fillStyle = pal.mountainFar
   var m1 = [95,90,84,78,72,68,73,79,85,80,74,66,60,55,61,68,75,82,77,70,63,58,64,71,78,84,88,82,75,69,64,70,76,82,87,92,86,79,74,80,86,91,95,98,94,89,85,90,94]
   for (var i = 0; i < m1.length; i++) {
     var mx = i * 8
     var my = m1[i]
     ctx.fillRect(mx, my, 8, waterY - my)
     if (my < 72) {
-      ctx.fillStyle = "#486878"
+      ctx.fillStyle = pal.snow
       ctx.fillRect(mx, my, 5, 4)
       ctx.fillRect(mx + 2, my + 4, 3, 3)
-      ctx.fillStyle = "#0c1822"
+      ctx.fillStyle = pal.mountainFar
     }
   }
 
   // Mid Fjord Cliffs
-  ctx.fillStyle = "#11222e"
+  ctx.fillStyle = pal.mountainMid
   for (var x2 = 0; x2 < w; x2 += 4) {
     var h2 = Math.floor(104 + Math.sin(x2 * 0.035) * 14 + Math.cos(x2 * 0.08) * 7)
     ctx.fillRect(x2, h2, 4, waterY - h2)
-    ctx.fillStyle = "#1a3140"
+    ctx.fillStyle = pal.midTop
     ctx.fillRect(x2, h2, 2, 3)
-    ctx.fillStyle = "#11222e"
+    ctx.fillStyle = pal.mountainMid
   }
 
   // Distant Pine Forest
   for (var tx = 120; tx < w; tx += 5) {
     var th = 10 + ((tx * 17) % 12)
     var ty = groundY - th
-    ctx.fillStyle = (tx % 10 === 0) ? "#0a1c20" : "#071418"
+    ctx.fillStyle = (tx % 10 === 0) ? pal.forestA : pal.forestB
     for (var tier = 0; tier < th; tier += 2) {
       var tw = 1 + Math.floor(tier * 0.45)
       ctx.fillRect(tx - Math.floor(tw / 2), ty + tier, tw, 2)
@@ -128,15 +145,15 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
   }
 
   // 3. Viking Settlement Shoreline & Ground
-  ctx.fillStyle = "#121a1d"
+  ctx.fillStyle = pal.ground
   ctx.fillRect(126, groundY, w - 126, 12)
-  ctx.fillStyle = "#1c282c"
+  ctx.fillStyle = pal.groundTop
   ctx.fillRect(130, groundY - 2, w - 130, 3)
   for (var gx = 132; gx < w; gx += 3) {
-    ctx.fillStyle = (gx % 6 === 0) ? "#1f3b34" : "#273338"
+    ctx.fillStyle = (gx % 6 === 0) ? pal.tuftA : pal.tuftB
     ctx.fillRect(gx, groundY - 1 + (gx % 2), 2, 2)
   }
-  ctx.fillStyle = "#1b3b48"
+  ctx.fillStyle = pal.puddle
   ctx.fillRect(172, groundY + 3, 14, 2)
   ctx.fillRect(222, groundY + 4, 18, 2)
   ctx.fillRect(276, groundY + 3, 16, 2)
