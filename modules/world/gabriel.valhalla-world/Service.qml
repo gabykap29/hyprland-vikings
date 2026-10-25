@@ -175,30 +175,46 @@ Scope {
         // Static Pixel Art Backdrop (Sky, Mountains, Forest, Pier, Mead Hall, Forge, Runestone)
         Canvas {
           id: staticBackdropCanvas
+          x: 0
+          y: 0
           width: root.pw
           height: root.ph
-          anchors.fill: parent
           smooth: false
           antialiasing: false
+
+          transform: Scale {
+            origin.x: 0
+            origin.y: 0
+            xScale: pixelViewport.width / root.pw
+            yScale: pixelViewport.height / root.ph
+          }
 
           Component.onCompleted: requestPaint()
 
           onPaint: {
             var ctx = getContext("2d")
             ctx.imageSmoothingEnabled = false
-            ctx.clearRect(0, 0, width, height)
-            BackdropRenderer.renderBackdrop(ctx, width, height, root.groundY, root.waterY)
+            ctx.clearRect(0, 0, root.pw, root.ph)
+            BackdropRenderer.renderBackdrop(ctx, root.pw, root.ph, root.groundY, root.waterY)
           }
         }
 
         // Dynamic Pixel Art Entities & Weather Layer
         Canvas {
           id: dynamicWorldCanvas
+          x: 0
+          y: 0
           width: root.pw
           height: root.ph
-          anchors.fill: parent
           smooth: false
           antialiasing: false
+
+          transform: Scale {
+            origin.x: 0
+            origin.y: 0
+            xScale: pixelViewport.width / root.pw
+            yScale: pixelViewport.height / root.ph
+          }
 
           property int frameTrigger: root.renderTick
           onFrameTriggerChanged: requestPaint()
@@ -206,13 +222,13 @@ Scope {
           onPaint: {
             var ctx = getContext("2d")
             ctx.imageSmoothingEnabled = false
-            ctx.clearRect(0, 0, width, height)
+            ctx.clearRect(0, 0, root.pw, root.ph)
             EntityRenderer.renderDynamicWorld(
               ctx,
               root.sim,
               root.currentWeatherObject(),
-              width,
-              height,
+              root.pw,
+              root.ph,
               root.groundY,
               root.waterY
             )
