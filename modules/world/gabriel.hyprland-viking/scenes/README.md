@@ -21,7 +21,7 @@ var scene = {
     effects: ["aurora", "stars"]        // toggles que el panel muestra para esta escena
   },
   createState: function(pw, ph) { return {} },
-  step: function(sim, weather, geometry) { /* un tick de simulación (24/s) */ },
+  step: function(sim, weather, geometry, env) { /* un tick de simulación (24/s) */ },
   renderBackdrop: function(ctx, geometry, env) { /* parte estática */ },
   renderDynamic: function(ctx, sim, weather, geometry, env) { /* parte animada */ },
   lightning: function(sim, x) { /* opcional: reacción al clic / tormenta */ }
@@ -39,8 +39,16 @@ var SCENES = [Valhalla.scene, MiEscena.scene]
 
 * `env.tod`: `"night" | "dawn" | "day" | "dusk"` (ya resuelto, también en modo automático).
 * `env.effects`: los toggles e intensidades del usuario (`aurora`, `lightning`, `ravens`,
-  `vikings`, `stars`, `auroraStrength`, `precipitation`). Respetalos si tu escena los usa.
+  `vikings`, `stars`, `fire`, `arrows`, `auroraStrength`, `precipitation`). Respetalos si tu escena los usa;
+  `supports.effects` define cuáles muestra el panel para tu escena.
 * `weather`: clima ya escalado por la intensidad de lluvia/nieve del usuario y con
   `thunderFrequency` en 0 si los relámpagos están apagados.
 
 La escena `valhalla/` es la referencia: `Palettes.js` muestra cómo variar colores por hora.
+
+## Piezas compartidas
+
+* `shared/Atmosphere.js`: estrellas, aurora, rayos, lluvia con salpicaduras, nieve y niebla.
+  La escena `battle/` lo usa; la de `valhalla/` todavía trae su propia copia.
+* `valhalla/BackdropRenderer.js` exporta `drawSky`, `drawMountains` y `drawForest`, que reutiliza `battle/`.
+* `battle/` es un buen ejemplo de una escena con simulación propia (combate, flechas, cuervos).

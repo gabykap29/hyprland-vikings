@@ -1,5 +1,6 @@
 .pragma library
 .import "valhalla/Scene.js" as Valhalla
+.import "battle/Scene.js" as Battle
 
 // ============================================================================
 // Registry.js — every visualisation the settings panel can offer.
@@ -7,7 +8,8 @@
 // ============================================================================
 
 var SCENES = [
-  Valhalla.scene
+  Valhalla.scene,
+  Battle.scene
 ]
 
 function list() {

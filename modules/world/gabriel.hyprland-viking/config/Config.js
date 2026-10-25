@@ -22,6 +22,8 @@ var DEFAULTS = {
     ravens: true,
     vikings: true,
     stars: true,
+    fire: true,
+    arrows: true,
     auroraStrength: 1.0,
     precipitation: 1.0
   }
@@ -79,6 +81,8 @@ function normalize(raw, sceneIds) {
       ravens: bool(fx.ravens, d.effects.ravens),
       vikings: bool(fx.vikings, d.effects.vikings),
       stars: bool(fx.stars, d.effects.stars),
+      fire: bool(fx.fire, d.effects.fire),
+      arrows: bool(fx.arrows, d.effects.arrows),
       auroraStrength: unit(fx.auroraStrength, d.effects.auroraStrength),
       precipitation: unit(fx.precipitation, d.effects.precipitation)
     }

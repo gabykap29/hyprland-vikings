@@ -9,7 +9,7 @@ Rectangle {
   signal clicked()
 
   width: 240
-  height: 132
+  height: 148
   radius: 6
   color: mouse.containsMouse ? Theme.surfaceHover : Theme.surface
   border.width: card.selected ? 2 : 1
@@ -47,6 +47,8 @@ Rectangle {
       font.family: Theme.font
       font.pixelSize: 13
       font.bold: true
+      wrapMode: Text.WordWrap
+      maximumLineCount: 2
       elide: Text.ElideRight
     }
     Text {

@@ -7,8 +7,8 @@
 // Blacksmith Forge, Runestone Sanctuary, and Wooden Pier)
 // ============================================================================
 
-function renderBackdrop(ctx, w, h, groundY, waterY, env) {
-  var pal = Palettes.forPhase(env && env.tod)
+// Shared sky layer: gradient, Milky Way, sun/moon, clouds and horizon glow.
+function drawSky(ctx, w, pal) {
   // 1. Night sky: indigo-to-teal gradient, ordered dithering between bands
   var skyYs = [0, 22, 44, 66, 86, 104, 122, 140]
   var skyBands = skyYs.map(function(y, i) { return { y: y, c: pal.sky[i] } })
@@ -107,14 +107,17 @@ function renderBackdrop(ctx, w, h, groundY, waterY, env) {
     ctx.fillStyle = "rgba(" + pal.glowRGB + ", " + (0.003 * gl * pal.glowScale).toFixed(3) + ")"
     ctx.fillRect(0, 118 + gl * 2, w, 2)
   }
+}
 
+// Distant ridge line and (optionally) the mid cliffs, filled down to `baseY`.
+function drawMountains(ctx, w, baseY, pal, withCliffs) {
   // 2. Far Fjord Mountains
   ctx.fillStyle = pal.mountainFar
   var m1 = [95,90,84,78,72,68,73,79,85,80,74,66,60,55,61,68,75,82,77,70,63,58,64,71,78,84,88,82,75,69,64,70,76,82,87,92,86,79,74,80,86,91,95,98,94,89,85,90,94]
   for (var i = 0; i < m1.length; i++) {
     var mx = i * 8
     var my = m1[i]
-    ctx.fillRect(mx, my, 8, waterY - my)
+    ctx.fillRect(mx, my, 8, baseY - my)
     if (my < 72) {
       ctx.fillStyle = pal.snow
       ctx.fillRect(mx, my, 5, 4)
@@ -123,18 +126,22 @@ function renderBackdrop(ctx, w, h, groundY, waterY, env) {
     }
   }
 
+  if (!withCliffs) return
   // Mid Fjord Cliffs
   ctx.fillStyle = pal.mountainMid
   for (var x2 = 0; x2 < w; x2 += 4) {
     var h2 = Math.floor(104 + Math.sin(x2 * 0.035) * 14 + Math.cos(x2 * 0.08) * 7)
-    ctx.fillRect(x2, h2, 4, waterY - h2)
+    ctx.fillRect(x2, h2, 4, baseY - h2)
     ctx.fillStyle = pal.midTop
     ctx.fillRect(x2, h2, 2, 3)
     ctx.fillStyle = pal.mountainMid
   }
+}
 
+// Pine silhouettes standing on `groundY`, starting at x = fromX.
+function drawForest(ctx, w, groundY, pal, fromX) {
   // Distant Pine Forest
-  for (var tx = 120; tx < w; tx += 5) {
+  for (var tx = fromX; tx < w; tx += 5) {
     var th = 10 + ((tx * 17) % 12)
     var ty = groundY - th
     ctx.fillStyle = (tx % 10 === 0) ? pal.forestA : pal.forestB
@@ -143,6 +150,13 @@ function renderBackdrop(ctx, w, h, groundY, waterY, env) {
       ctx.fillRect(tx - Math.floor(tw / 2), ty + tier, tw, 2)
     }
   }
+}
+
+function renderBackdrop(ctx, w, h, groundY, waterY, env) {
+  var pal = Palettes.forPhase(env && env.tod)
+  drawSky(ctx, w, pal)
+  drawMountains(ctx, w, waterY, pal, true)
+  drawForest(ctx, w, groundY, pal, 120)
 
   // 3. Viking Settlement Shoreline & Ground
   ctx.fillStyle = pal.ground

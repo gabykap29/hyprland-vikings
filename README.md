@@ -31,10 +31,10 @@ Abrilo desde el menú de Omarchy (`Super + Alt + Space` → **Style** → **Hypr
 
 | Sección | Qué configura |
 |---|---|
-| **Visualización** | Escena activa. Hoy: *Valhalla · Fiordo del Cuervo* (por defecto). Más escenas se agregan sin tocar el motor, ver [`scenes/README.md`](modules/world/gabriel.hyprland-viking/scenes/README.md). |
+| **Visualización** | Escena activa: *Valhalla · Fiordo del Cuervo* (por defecto) o *Batalla · Clan del Cuervo vs Sajones*. Se agregan más sin tocar el motor, ver [`scenes/README.md`](modules/world/gabriel.hyprland-viking/scenes/README.md). |
 | **Clima y ciudad** | Modo manual (despejado / lluvia / tormenta / nieve) o automático, y tu ciudad. |
 | **Hora del día** | Automático (según la hora real), noche, amanecer, día o atardecer. |
-| **Efectos** | Aurora, relámpagos, cuervos, vikingos y estrellas; intensidad de la aurora y de lluvia/nieve. |
+| **Efectos** | Los de la escena activa: aurora, relámpagos, cuervos, vikingos, estrellas, incendios y flechas; intensidad de la aurora y de lluvia/nieve. |
 | **Rendimiento** | 8 / 12 / 24 fps (la velocidad de la animación no cambia) y apagar el fondo. |
 
 Todo también se puede cambiar desde la CLI:
@@ -61,6 +61,18 @@ hyprland-viking-ctl toggle
 ```
 
 Los valores inválidos se corrigen solos al cargar, así que editar el archivo a mano nunca rompe el fondo.
+
+---
+
+## ⚔️ Escena de Batalla
+
+Elegila en **Visualización**. Nórdicos del **Clan del Cuervo** (escudos azul noche con el cuervo en blanco hueso, ribete turquesa y boss dorado) contra sajones (escudos rojos y ocres), frente a una empalizada en llamas y un drakkar varado en la costa.
+
+* Cada guerrero elige al enemigo más cercano, se acerca, ataca (preparar, golpear, recuperar), bloquea con el escudo, recibe daño y cae. Los campeones (el jefe nórdico con casco de cuernos y el *thegn* sajón) se buscan entre sí y muestran su barra de vida al ser heridos.
+* Los arqueros disparan flechas en arco; algunas hieren, otras se clavan en el suelo. De noche, algunos sajones lanzan flechas incendiarias.
+* Llegan refuerzos por la playa y por la puerta rota, así que la batalla nunca termina; los caídos quedan en el campo y los cuervos de Odín bajan a posarse sobre ellos.
+* **Clic en el escritorio**: un rayo de Thor cae donde hagas clic. Abate a los sajones cercanos y los nórdicos lo celebran con una runa.
+* Respeta la hora del día, el clima (lluvia, nieve, niebla, tormenta) y los efectos del panel (relámpagos, cuervos, incendios, flechas).
 
 ---
 
@@ -98,6 +110,11 @@ hyprland-viking/
     │       ├── scenes/
     │       │   ├── Registry.js        # Lista de visualizaciones disponibles
     │       │   ├── README.md          # Cómo agregar una escena
+    │       │   ├── shared/Atmosphere.js # Estrellas, aurora, rayos, lluvia, nieve y niebla reutilizables
+    │       │   ├── battle/            # Escena de batalla: Clan del Cuervo vs sajones
+    │       │   │   ├── Scene.js, Layout.js, Palettes.js
+    │       │   │   ├── Backdrop.js, Renderer.js, Fighters.js
+    │       │   │   └── Simulation.js  # IA de combate, flechas, refuerzos y cuervos
     │       │   └── valhalla/          # Escena por defecto
     │       │       ├── Scene.js, Palettes.js
     │       │       ├── BackdropRenderer.js  # Escenario estático (cielo, Langhús, forja, muelle)

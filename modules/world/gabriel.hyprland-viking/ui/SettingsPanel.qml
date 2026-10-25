@@ -22,7 +22,9 @@ PanelWindow {
     lightning: { label: "Relámpagos de Thor", hint: "Rayos aleatorios en tormenta y con clic en el escritorio." },
     ravens: { label: "Cuervos de Odín", hint: "Huginn y Muninn sobrevolando la escena." },
     vikings: { label: "Vikingos", hint: "Habitantes autónomos del asentamiento." },
-    stars: { label: "Estrellas", hint: "Cielo estrellado (solo visible de noche)." }
+    stars: { label: "Estrellas", hint: "Cielo estrellado (solo visible de noche)." },
+    fire: { label: "Incendios", hint: "Llamas, humo y brasas en los edificios en llamas." },
+    arrows: { label: "Flechas", hint: "Los arqueros disparan; sin esto solo hay combate cuerpo a cuerpo." }
   })
 
   readonly property var timeLabels: ({

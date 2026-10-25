@@ -284,7 +284,7 @@ Scope {
     onTriggered: {
       var steps = Math.max(1, Math.round(24 / root.cfg.performance.fps))
       var weather = root.effectiveWeather()
-      for (var i = 0; i < steps; i++) root.scene.step(root.sim, weather, root.geometry)
+      for (var i = 0; i < steps; i++) root.scene.step(root.sim, weather, root.geometry, root.env)
       root.renderTick = root.sim ? root.sim.tick : (root.renderTick + steps)
     }
   }
