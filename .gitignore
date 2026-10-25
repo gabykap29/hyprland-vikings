@@ -1,0 +1,6 @@
+# Backup & temporary files
+*.bak
+*.swp
+*~
+.DS_Store
+backups/
