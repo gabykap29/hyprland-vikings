@@ -24,6 +24,7 @@ var DEFAULTS = {
     stars: true,
     fire: true,
     arrows: true,
+    wildlife: true,
     auroraStrength: 1.0,
     precipitation: 1.0
   }
@@ -83,6 +84,7 @@ function normalize(raw, sceneIds) {
       stars: bool(fx.stars, d.effects.stars),
       fire: bool(fx.fire, d.effects.fire),
       arrows: bool(fx.arrows, d.effects.arrows),
+      wildlife: bool(fx.wildlife, d.effects.wildlife),
       auroraStrength: unit(fx.auroraStrength, d.effects.auroraStrength),
       precipitation: unit(fx.precipitation, d.effects.precipitation)
     }

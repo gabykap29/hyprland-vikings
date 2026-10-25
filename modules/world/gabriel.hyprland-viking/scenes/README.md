@@ -39,7 +39,7 @@ var SCENES = [Valhalla.scene, MiEscena.scene]
 
 * `env.tod`: `"night" | "dawn" | "day" | "dusk"` (ya resuelto, también en modo automático).
 * `env.effects`: los toggles e intensidades del usuario (`aurora`, `lightning`, `ravens`,
-  `vikings`, `stars`, `fire`, `arrows`, `auroraStrength`, `precipitation`). Respetalos si tu escena los usa;
+  `vikings`, `stars`, `fire`, `arrows`, `wildlife`, `auroraStrength`, `precipitation`). Respetalos si tu escena los usa;
   `supports.effects` define cuáles muestra el panel para tu escena.
 * `weather`: clima ya escalado por la intensidad de lluvia/nieve del usuario y con
   `thunderFrequency` en 0 si los relámpagos están apagados.
@@ -52,3 +52,4 @@ La escena `valhalla/` es la referencia: `Palettes.js` muestra cómo variar color
   La escena `battle/` lo usa; la de `valhalla/` todavía trae su propia copia.
 * `valhalla/BackdropRenderer.js` exporta `drawSky`, `drawMountains` y `drawForest`, que reutiliza `battle/`.
 * `battle/` es un buen ejemplo de una escena con simulación propia (combate, flechas, cuervos).
+* `voyage/` reutiliza el drakkar de Valhalla a doble escala (`drawDrakkar(ctx, t, { sy, oarSwing, noOars })`) con `ctx.translate/scale`.

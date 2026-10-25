@@ -235,8 +235,10 @@ function drawPixelViking(ctx, vk, tickCount, groundY) {
 
 // Clinker-built longship: dragon prow, striped sail, shield rack, rigging and rowing oars.
 // Anchored at x 9..79; `sy` is the gunwale line and bobs with the swell.
-function drawDrakkar(ctx, t) {
-  var sy = 152 + Math.round(Math.sin(t * 0.06) * 1.4)
+// opts (optional): { sy: gunwale line override, oarSwing: function(k) -> px, noOars: bool }
+// lets other scenes drive the bob and the rowing; without it the ship idles at anchor.
+function drawDrakkar(ctx, t, opts) {
+  var sy = (opts && opts.sy !== undefined) ? opts.sy : 152 + Math.round(Math.sin(t * 0.06) * 1.4)
   var INK = "#0b0f14"
   var parts = []
   function P(x, y, w, h, c, noOutline) { parts.push({ x: x, y: y, w: w, h: h, c: c, o: !noOutline }) }
@@ -245,9 +247,9 @@ function drawDrakkar(ctx, t) {
   var GOLD = "#f0ba65", BONE = "#efe4cc", RED = "#8f2a24", RED_D = "#6a1d19", CREAM = "#d9c9a0", TEAL = "#4ecdc4"
 
   // ---- Oars (behind hull, dip into the water) ---------------------------
-  for (var k = 0; k < 6; k++) {
+  for (var k = 0; !(opts && opts.noOars) && k < 6; k++) {
     var ox = 26 + k * 8
-    var sw = Math.round(Math.sin(t * 0.07 + k * 0.9) * 2)
+    var sw = (opts && opts.oarSwing) ? opts.oarSwing(k) : Math.round(Math.sin(t * 0.07 + k * 0.9) * 2)
     for (var oi = 0; oi < 7; oi++) P(ox + Math.floor(oi * 0.5) + sw, sy + 3 + oi, 1, 1, WOOD_L, true)
     P(ox + 3 + sw, sy + 9, 2, 3, WOOD_D)
   }

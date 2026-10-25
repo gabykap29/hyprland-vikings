@@ -31,10 +31,10 @@ Abrilo desde el menú de Omarchy (`Super + Alt + Space` → **Style** → **Hypr
 
 | Sección | Qué configura |
 |---|---|
-| **Visualización** | Escena activa: *Valhalla · Fiordo del Cuervo* (por defecto) o *Batalla · Clan del Cuervo vs Sajones*. Se agregan más sin tocar el motor, ver [`scenes/README.md`](modules/world/gabriel.hyprland-viking/scenes/README.md). |
+| **Visualización** | Escena activa: *Valhalla · Fiordo del Cuervo* (por defecto), *Batalla · Clan del Cuervo vs Sajones* o *Travesía · Drakkar en alta mar*. Se agregan más sin tocar el motor, ver [`scenes/README.md`](modules/world/gabriel.hyprland-viking/scenes/README.md). |
 | **Clima y ciudad** | Modo manual (despejado / lluvia / tormenta / nieve) o automático, y tu ciudad. |
 | **Hora del día** | Automático (según la hora real), noche, amanecer, día o atardecer. |
-| **Efectos** | Los de la escena activa: aurora, relámpagos, cuervos, vikingos, estrellas, incendios y flechas; intensidad de la aurora y de lluvia/nieve. |
+| **Efectos** | Los de la escena activa: aurora, relámpagos, cuervos, vikingos, estrellas, incendios, flechas y fauna marina; intensidad de la aurora y de lluvia/nieve. |
 | **Rendimiento** | 8 / 12 / 24 fps (la velocidad de la animación no cambia) y apagar el fondo. |
 
 Todo también se puede cambiar desde la CLI:
@@ -73,6 +73,17 @@ Elegila en **Visualización**. Nórdicos del **Clan del Cuervo** (escudos azul n
 * Llegan refuerzos por la playa y por la puerta rota, así que la batalla nunca termina; los caídos quedan en el campo y los cuervos de Odín bajan a posarse sobre ellos.
 * **Clic en el escritorio**: un rayo de Thor cae donde hagas clic. Abate a los sajones cercanos y los nórdicos lo celebran con una runa.
 * Respeta la hora del día, el clima (lluvia, nieve, niebla, tormenta) y los efectos del panel (relámpagos, cuervos, incendios, flechas).
+
+---
+
+## ⛵ Escena de Travesía
+
+El drakkar del Clan del Cuervo, a doble escala, surca el mar abierto: la tripulación boga al ritmo del tambor, el timonel gobierna con su remo y el vigía sopla el cuerno cuando avista algo.
+
+* **Oleaje en paralaje**: el mar se desliza más rápido cuanto más cerca, con estela y espuma de proa. El cabeceo del barco crece con el viento y la lluvia.
+* **Eventos**: una ballena emerge a lo lejos, lanza su chorro y se sumerge; pasan islas con una baliza encendida. La tripulación reacciona con runas.
+* **Cielo cambiante** (noche, amanecer, día, atardecer) con la luna o el sol reflejados en el agua, gaviotas de día y los cuervos de Odín. Un cuervo vigila desde el mástil y se va volando cuando cae un rayo.
+* **Clic en el escritorio**: cae un rayo de Thor en el mar; si cae cerca del barco, la tripulación lo celebra.
 
 ---
 
@@ -115,6 +126,9 @@ hyprland-viking/
     │       │   │   ├── Scene.js, Layout.js, Palettes.js
     │       │   │   ├── Backdrop.js, Renderer.js, Fighters.js
     │       │   │   └── Simulation.js  # IA de combate, flechas, refuerzos y cuervos
+    │       │   ├── voyage/            # Escena de travesía: drakkar a doble escala en alta mar
+    │       │   │   ├── Scene.js, Layout.js, Backdrop.js
+    │       │   │   └── Renderer.js, Simulation.js  # oleaje, tripulación, ballena, islas
     │       │   └── valhalla/          # Escena por defecto
     │       │       ├── Scene.js, Palettes.js
     │       │       ├── BackdropRenderer.js  # Escenario estático (cielo, Langhús, forja, muelle)
