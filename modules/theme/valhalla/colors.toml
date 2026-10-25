@@ -1,0 +1,59 @@
+# Assassin's Creed Valhalla (Raven Clan / Animus Norse) Palette for Omarchy
+accent = "#38b2a6"
+cursor = "#e5a93c"
+
+foreground = "#e8dfc8"
+background = "#0d1318"
+
+selection_foreground = "#0d1318"
+selection_background = "#d49b4b"
+
+mode = "dark"
+
+selection = "#1b2832"
+muted = "#7b8b94"
+
+hyprland_active_border = "rgba(4ecdc4ee) rgba(38b2a6ee) rgba(d49b4bee) rgba(e5a93cee) 45deg"
+hyprland_inactive_border = "rgb(25313a)"
+
+dark_background = "#0d1318"
+darker_background = "#080c0f"
+lighter_background = "#162028"
+
+dark_foreground = "#cfc5ae"
+light_foreground = "#e8dfc8"
+bright_foreground = "#f7f1e1"
+
+red = "#c94a4a"
+yellow = "#d49b4b"
+orange = "#e07a38"
+green = "#4ecdc4"
+cyan = "#38b2a6"
+blue = "#4a8db7"
+magenta = "#a87693"
+brown = "#b88655"
+
+bright_red = "#e06666"
+bright_yellow = "#f0ba65"
+bright_green = "#6ee2d9"
+bright_cyan = "#7ce8df"
+bright_blue = "#6ba8d1"
+bright_magenta = "#c293ae"
+
+color0 = "#0d1318"
+color1 = "#c94a4a"
+color2 = "#38b2a6"
+color3 = "#d49b4b"
+color4 = "#4a8db7"
+color5 = "#a87693"
+color6 = "#4ecdc4"
+color7 = "#cfc5ae"
+
+color8 = "#2b3942"
+color9 = "#e06666"
+color10 = "#6ee2d9"
+color11 = "#f0ba65"
+color12 = "#6ba8d1"
+color13 = "#c293ae"
+color14 = "#7ce8df"
+color15 = "#f7f1e1"
