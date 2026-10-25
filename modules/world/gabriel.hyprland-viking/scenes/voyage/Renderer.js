@@ -6,7 +6,7 @@
 
 // ============================================================================
 // Renderer.js — dynamic layer of the voyage, back to front: sky weather, drifting
-// clouds, islands, wildlife, back swells, the 2x drakkar with its crew, the
+// clouds, islands, wildlife, back swells, the drakkar with its crew, the
 // water line, front swells, wake and bow spray, then rain, fog and colour grade.
 // ============================================================================
 
@@ -59,10 +59,9 @@ function drawIslands(ctx, sim, pal, t, hz) {
       ctx.fillStyle = "#3c434a"
       ctx.fillRect(bx - 2, by - 9, 6, 2)
       var fl = 2 + Math.floor(Math.abs(Math.sin(t * 0.3)) * 3)
-      ctx.fillStyle = "rgba(255, 150, 60, 0.07)"
-      ctx.fillRect(bx - 8, by - 22, 18, 18)
-      ctx.fillStyle = "rgba(255, 150, 60, 0.09)"
-      ctx.fillRect(bx - 4, by - 17, 10, 10)
+      ctx.fillStyle = "rgba(255, 150, 60, 0.14)"             // cross-shaped glow, no hard box
+      ctx.fillRect(bx - 4, by - 14, 10, 3)
+      ctx.fillRect(bx - 1, by - 18, 4, 11)
       ctx.fillStyle = "#e0561f"
       ctx.fillRect(bx, by - 9 - fl, 2, fl)
       ctx.fillStyle = "#ffd35c"
@@ -224,18 +223,6 @@ function drawShip(ctx, sim, weather, fx, t) {
     }
     ctx.restore()
 
-    // Drum beside the drummer, flashing on the beat
-    var beat = Math.floor(t * 0.35) % 2 === 0
-    var dxd = 34, dyd = sy - 7
-    ctx.fillStyle = INK
-    ctx.fillRect(dxd - 1, dyd - 1, 9, 6)
-    ctx.fillStyle = WOOD
-    ctx.fillRect(dxd, dyd + 1, 7, 3)
-    ctx.fillStyle = beat ? "#ffffff" : "#e6edf0"
-    ctx.fillRect(dxd, dyd, 7, 1)
-    ctx.fillStyle = "#8f2a24"
-    ctx.fillRect(dxd, dyd + 2, 7, 1)
-
     // Steering oar at the stern
     ctx.fillStyle = WOOD
     for (var s = 0; s < 16; s++) ctx.fillRect(74 + Math.floor(s * 0.5), sy - 8 + s, 1, 1)
@@ -296,20 +283,22 @@ function renderDynamic(ctx, sim, weather, g, env) {
   drawShip(ctx, sim, weather, fx, t)
 
   // Water line: hide the keel, then the front swells, glow, wake and bow spray
+  var S = Layout.SHIP
   var band = pal.water[Math.min(pal.water.length - 1, Math.floor((W - hz) / Math.ceil((h - hz) / pal.water.length)))]
   ctx.fillStyle = band
-  ctx.fillRect(Layout.SHIP.tx + 6, W, 166, 14)
+  ctx.fillRect(S.tx + 4 * S.scale, W, 80 * S.scale, 8 * S.scale)
   drawGlow(ctx, t, pal, W, h, hz, h)
   drawWaves(ctx, t, w, W, h, hz, h, swell, pal)
 
-  var wakeX = Layout.SHIP.tx + 2 * 79
+  var wakeLen = 70 + 35 * S.scale
+  var wakeX = S.tx + S.scale * 79
   for (i = 0; i < 20; i++) {
-    var wx = wakeX + ((i * 7 + Math.floor(t * 0.7)) % 140)
-    var fade = 1 - (wx - wakeX) / 140
+    var wx = wakeX + ((i * 7 + Math.floor(t * 0.7)) % wakeLen)
+    var fade = 1 - (wx - wakeX) / wakeLen
     ctx.fillStyle = "rgba(225, 242, 248, " + (0.55 * fade).toFixed(2) + ")"
     ctx.fillRect(wx, W + 1 + (i % 3) * 2, 4 + (i % 3), 1)
   }
-  var bowX = Layout.SHIP.tx + 2 * 9
+  var bowX = S.tx + S.scale * 9
   for (i = 0; i < 9; i++) {
     var sprayY = W - 3 + ((t + i * 3) % 5) - 2
     ctx.fillStyle = "rgba(235, 248, 255, " + (0.45 + 0.4 * ((i + t) % 2)).toFixed(2) + ")"

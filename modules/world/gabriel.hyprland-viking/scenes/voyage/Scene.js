@@ -12,7 +12,7 @@
 var scene = {
   id: "voyage",
   name: "Travesía · Drakkar en alta mar",
-  description: "El drakkar surca el mar al ritmo del tambor, con ballenas, islas con balizas y el cielo cambiando.",
+  description: "El drakkar surca el mar a lo lejos, con ballenas, islas con balizas y el cielo cambiando.",
   swatches: ["#0e1e30", "#2f7a99", "#e6edf0", "#8f2a24"],
   geometry: Layout.GEOMETRY,
   supports: {

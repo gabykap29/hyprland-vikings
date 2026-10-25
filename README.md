@@ -78,7 +78,7 @@ Elegila en **Visualización**. Nórdicos del **Clan del Cuervo** (escudos azul n
 
 ## ⛵ Escena de Travesía
 
-El drakkar del Clan del Cuervo, a doble escala, surca el mar abierto: la tripulación boga al ritmo del tambor, el timonel gobierna con su remo y el vigía sopla el cuerno cuando avista algo.
+El drakkar del Clan del Cuervo surca el mar abierto, visto desde lejos: la tripulación boga al unísono, el timonel gobierna con su remo y el vigía sopla el cuerno cuando avista algo.
 
 * **Oleaje en paralaje**: el mar se desliza más rápido cuanto más cerca, con estela y espuma de proa. El cabeceo del barco crece con el viento y la lluvia.
 * **Eventos**: una ballena emerge a lo lejos, lanza su chorro y se sumerge; pasan islas con una baliza encendida. La tripulación reacciona con runas.
@@ -126,7 +126,7 @@ hyprland-viking/
     │       │   │   ├── Scene.js, Layout.js, Palettes.js
     │       │   │   ├── Backdrop.js, Renderer.js, Fighters.js
     │       │   │   └── Simulation.js  # IA de combate, flechas, refuerzos y cuervos
-    │       │   ├── voyage/            # Escena de travesía: drakkar a doble escala en alta mar
+    │       │   ├── voyage/            # Escena de travesía: drakkar en alta mar
     │       │   │   ├── Scene.js, Layout.js, Backdrop.js
     │       │   │   └── Renderer.js, Simulation.js  # oleaje, tripulación, ballena, islas
     │       │   └── valhalla/          # Escena por defecto

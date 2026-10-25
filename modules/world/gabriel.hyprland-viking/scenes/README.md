@@ -52,4 +52,4 @@ La escena `valhalla/` es la referencia: `Palettes.js` muestra cómo variar color
   La escena `battle/` lo usa; la de `valhalla/` todavía trae su propia copia.
 * `valhalla/BackdropRenderer.js` exporta `drawSky`, `drawMountains` y `drawForest`, que reutiliza `battle/`.
 * `battle/` es un buen ejemplo de una escena con simulación propia (combate, flechas, cuervos).
-* `voyage/` reutiliza el drakkar de Valhalla a doble escala (`drawDrakkar(ctx, t, { sy, oarSwing, noOars })`) con `ctx.translate/scale`.
+* `voyage/` reutiliza el drakkar de Valhalla (`drawDrakkar(ctx, t, { sy, oarSwing, noOars })`) con `ctx.translate/scale`. Hoy se ve lejano (1x); subir `SHIP.scale` en `voyage/Layout.js` lo acerca.
