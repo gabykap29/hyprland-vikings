@@ -7,32 +7,89 @@
 // ============================================================================
 
 function renderBackdrop(ctx, w, h, groundY, waterY) {
-  // 1. Night Sky Bands with Dithering
+  // 1. Night sky: indigo-to-teal gradient, ordered dithering between bands
   var skyBands = [
-    { y: 0,   h: 28, c: "#04080d" },
-    { y: 28,  h: 28, c: "#071019" },
-    { y: 56,  h: 28, c: "#0b1924" },
-    { y: 84,  h: 32, c: "#102330" },
-    { y: 116, h: 52, c: "#152d3b" }
+    { y: 0,   c: "#03060c" },
+    { y: 22,  c: "#050b14" },
+    { y: 44,  c: "#070f1c" },
+    { y: 66,  c: "#0a1626" },
+    { y: 86,  c: "#0e1e30" },
+    { y: 104, c: "#132a3b" },
+    { y: 122, c: "#1a3547" },
+    { y: 140, c: "#234656" }
   ]
   for (var sb = 0; sb < skyBands.length; sb++) {
+    var bandEnd = (sb + 1 < skyBands.length) ? skyBands[sb + 1].y : 168
     ctx.fillStyle = skyBands[sb].c
-    ctx.fillRect(0, skyBands[sb].y, w, skyBands[sb].h)
+    ctx.fillRect(0, skyBands[sb].y, w, bandEnd - skyBands[sb].y)
     if (sb > 0) {
       ctx.fillStyle = skyBands[sb - 1].c
-      for (var dx = (sb % 2); dx < w; dx += 2) {
-        ctx.fillRect(dx, skyBands[sb].y, 1, 1)
-      }
+      for (var dx = 0; dx < w; dx += 2) ctx.fillRect(dx + (sb % 2), skyBands[sb].y, 1, 1)
+      for (var dx2 = 0; dx2 < w; dx2 += 4) ctx.fillRect(dx2 + 2, skyBands[sb].y + 1, 1, 1)
+      ctx.fillStyle = skyBands[sb].c
+      for (var dx3 = 0; dx3 < w; dx3 += 4) ctx.fillRect(dx3, skyBands[sb].y - 1, 1, 1)
     }
   }
 
-  // Crescent Moon
-  ctx.fillStyle = "#dceef2"
-  ctx.fillRect(52, 22, 10, 10)
-  ctx.fillRect(50, 24, 14, 6)
-  ctx.fillRect(54, 20, 6, 14)
-  ctx.fillStyle = "#071019"
-  ctx.fillRect(55, 21, 9, 9)
+  // Milky Way: faint diagonal dust of stars
+  for (var mw = 0; mw < 170; mw++) {
+    var mwx = (mw * 53) % w
+    var mwy = Math.floor(96 - mwx * 0.22 + (((mw * 37) % 29) - 14))
+    if (mwy < 4 || mwy > 120) continue
+    ctx.fillStyle = "rgba(190, 220, 235, " + (0.08 + ((mw * 13) % 5) * 0.035).toFixed(2) + ")"
+    ctx.fillRect(mwx, mwy, 1, 1)
+  }
+
+  // Crescent moon with halo, craters and rim light
+  var MX = 57, MY = 28
+  for (var hy = -22; hy <= 22; hy++) {
+    for (var hx = -22; hx <= 22; hx++) {
+      var hd = Math.sqrt(hx * hx + hy * hy)
+      if (hd > 10.5 && hd < 21 && ((hx + hy) & 1) === 0) {
+        ctx.fillStyle = "rgba(160, 210, 225, " + (hd < 14 ? "0.10" : (hd < 18 ? "0.055" : "0.025")) + ")"
+        ctx.fillRect(MX + hx, MY + hy, 1, 1)
+      }
+    }
+  }
+  for (var my2 = -10; my2 <= 10; my2++) {
+    for (var mx2 = -10; mx2 <= 10; mx2++) {
+      var inMoon = (mx2 * mx2 + my2 * my2) <= 100
+      var inBite = ((mx2 - 5) * (mx2 - 5) + (my2 + 2) * (my2 + 2)) <= 72
+      if (inMoon && !inBite) {
+        ctx.fillStyle = (mx2 + my2 < -6) ? "#f2fbfd" : ((mx2 < -6) ? "#a9c6d1" : "#dceef2")
+        ctx.fillRect(MX + mx2, MY + my2, 1, 1)
+      }
+    }
+  }
+  ctx.fillStyle = "#9db9c4"
+  ctx.fillRect(MX - 6, MY + 1, 2, 2)
+  ctx.fillRect(MX - 4, MY + 5, 3, 2)
+  ctx.fillRect(MX - 8, MY - 3, 1, 2)
+
+  // Drifting cloud banks, rim-lit by the moon
+  var clouds = [
+    { x: 6,   y: 52,  w: 54 }, { x: 96,  y: 38, w: 70 }, { x: 188, y: 60, w: 64 },
+    { x: 250, y: 30,  w: 58 }, { x: 318, y: 66, w: 76 }, { x: 40,  y: 88, w: 46 },
+    { x: 150, y: 96,  w: 52 }, { x: 288, y: 100, w: 40 }
+  ]
+  for (var ci = 0; ci < clouds.length; ci++) {
+    var cl = clouds[ci]
+    ctx.fillStyle = "rgba(6, 14, 24, 0.62)"
+    ctx.fillRect(cl.x + 8, cl.y, cl.w - 16, 2)
+    ctx.fillRect(cl.x + 2, cl.y + 2, cl.w - 4, 3)
+    ctx.fillRect(cl.x + 10, cl.y + 5, cl.w - 22, 2)
+    ctx.fillStyle = "rgba(120, 175, 195, 0.20)"
+    ctx.fillRect(cl.x + 8, cl.y, cl.w - 16, 1)
+    ctx.fillRect(cl.x + 2, cl.y + 2, 6, 1)
+    ctx.fillStyle = "rgba(70, 130, 150, 0.14)"
+    ctx.fillRect(cl.x + 12, cl.y + 6, cl.w - 26, 1)
+  }
+
+  // Cold horizon glow
+  for (var gl = 0; gl < 28; gl++) {
+    ctx.fillStyle = "rgba(78, 205, 196, " + (0.005 * gl * 0.6).toFixed(3) + ")"
+    ctx.fillRect(0, 118 + gl * 2, w, 2)
+  }
 
   // 2. Far Fjord Mountains
   ctx.fillStyle = "#0c1822"
@@ -124,59 +181,130 @@ function renderBackdrop(ctx, w, h, groundY, waterY) {
   ctx.fillStyle = "#738691"
   ctx.fillRect(203, 150, 10, 2)
 
-  // 7. The Great Viking Mead Hall (Longhouse)
-  ctx.fillStyle = "#253036"
-  ctx.fillRect(256, 152, 104, 6)
-  ctx.fillStyle = "#362316"
-  ctx.fillRect(258, 128, 100, 24)
-  ctx.fillStyle = "#4d3320"
-  for (var wx = 258; wx <= 356; wx += 14) {
-    ctx.fillRect(wx, 128, 3, 24)
+  // 7. The Great Hall (Langhús / Mead Hall) of the Raven Clan
+  function mirror(x, w) { return 616 - x - w }                      // hall axis is x = 308
+  function R(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h) }
+  function RM(x, y, w, h, c) { R(x, y, w, h, c); R(mirror(x, w), y, w, h, c) }
+
+  // Stone foundation
+  R(254, 152, 108, 6, "#222d33")
+  for (var fx = 254; fx < 362; fx += 6) {
+    R(fx, 152 + ((fx / 6) % 2), 5, 2, "#33434b")
+    R(fx + 2, 155, 4, 2, "#2b393f")
   }
+
+  // Log walls
+  R(258, 128, 100, 24, "#35221a")
+  for (var lx = 258; lx < 358; lx += 2) R(lx, 128, 1, 24, "#2b1a12")
+  for (var ly = 131; ly < 152; ly += 5) R(258, ly, 100, 1, "#24160f")
+  // Timber frame posts with highlight
+  for (var wx = 258; wx <= 356; wx += 14) {
+    R(wx, 128, 3, 24, "#5a3b24")
+    R(wx, 128, 1, 24, "#7a5233")
+    R(wx + 2, 128, 1, 24, "#3b2616")
+  }
+
+  // Roof: night-blue shingles with scale pattern
   for (var ry = 0; ry < 28; ry++) {
     var inset = Math.floor(ry * 0.45)
-    ctx.fillStyle = (ry % 4 === 0) ? "#1c2b33" : "#152229"
-    ctx.fillRect(250 + inset, 128 - ry, 116 - inset * 2, 1)
+    var rx = 250 + inset, rw = 116 - inset * 2
+    R(rx, 128 - ry, rw, 1, (ry % 4 < 2) ? "#1c2b33" : "#152229")
+    for (var sx = rx + ((ry % 2) * 3); sx < rx + rw; sx += 6) R(sx, 128 - ry, 2, 1, "#2b4350")
+    R(rx, 128 - ry, 1, 1, "#3a5a69")                                // lit left rake
+    R(rx + rw - 1, 128 - ry, 1, 1, "#0d171c")
   }
-  ctx.fillStyle = "#6e4c2e"
-  ctx.fillRect(260, 100, 96, 2)
-  ctx.fillStyle = "#f0ba65"
-  // Dragon-head roof finials
-  ctx.fillRect(256, 95, 4, 6)
-  ctx.fillRect(253, 93, 4, 3)
-  ctx.fillRect(251, 95, 2, 2)
-  ctx.fillRect(356, 95, 4, 6)
-  ctx.fillRect(359, 93, 4, 3)
-  ctx.fillRect(363, 95, 2, 2)
+  // Eave overhang, shadow on walls
+  R(247, 128, 122, 3, "#2a1b11")
+  R(247, 128, 122, 1, "#5a3b24")
+  R(258, 131, 100, 3, "rgba(0, 0, 0, 0.38)")
 
-  // Grand Oak Door
-  ctx.fillStyle = "#21140c"
-  ctx.fillRect(301, 135, 14, 23)
-  ctx.fillStyle = "#5c3d26"
-  ctx.fillRect(300, 134, 16, 2)
-  ctx.fillStyle = "#f0ba65"
-  ctx.fillRect(306, 145, 2, 2)
-  ctx.fillRect(309, 145, 2, 2)
+  // Ridge beam + crossed gable ends
+  R(260, 99, 96, 3, "#6e4c2e")
+  R(260, 99, 96, 1, "#8a6540")
+  for (var rb = 266; rb < 352; rb += 10) R(rb, 101, 2, 1, "#3b2616")
 
-  // Glowing Windows
-  ctx.fillStyle = "#f0ba65"
-  ctx.fillRect(274, 138, 10, 7)
-  ctx.fillRect(332, 138, 10, 7)
-  ctx.fillStyle = "#ffdf9e"
-  ctx.fillRect(276, 139, 6, 5)
-  ctx.fillRect(334, 139, 6, 5)
-  ctx.fillStyle = "#362316"
-  ctx.fillRect(278, 138, 2, 7)
-  ctx.fillRect(336, 138, 2, 7)
+  // Glowing smoke-hole louver
+  R(302, 106, 12, 6, "#2a1b11")
+  R(303, 107, 10, 4, "#f0ba65")
+  R(303, 109, 10, 1, "#c4812f")
+  R(304, 107, 1, 4, "#2a1b11")
+  R(308, 107, 1, 4, "#2a1b11")
+  R(312, 107, 1, 4, "#2a1b11")
 
-  // Raven Clan Shields on Facade
-  var shieldXs = [266, 290, 324, 348]
+  // Carved dragon-head finials (bronze), mirrored
+  RM(256, 95, 4, 7, "#b88236")                                     // neck post
+  RM(256, 95, 1, 7, "#d9a655")
+  RM(252, 91, 6, 4, "#c9923f")                                     // head
+  RM(248, 92, 5, 2, "#d9a655")                                     // snout
+  RM(248, 94, 4, 1, "#efe4cc")                                     // teeth
+  RM(253, 92, 1, 1, "#0d171c")                                     // eye
+  RM(256, 88, 1, 4, "#c9923f")                                     // horn
+  RM(257, 87, 2, 1, "#c9923f")
+
+  // Grand arched oak door with iron bands and stone steps
+  R(299, 156, 18, 2, "#33434b")
+  R(297, 158, 22, 1, "#2b393f")
+  R(298, 133, 20, 25, "#4a3020")                                   // frame
+  R(300, 135, 16, 23, "#1b110a")
+  R(301, 134, 14, 1, "#1b110a")
+  R(302, 133, 12, 1, "#1b110a")
+  for (var dp = 301; dp < 315; dp += 3) R(dp, 136, 1, 22, "#2a1a0f")
+  R(300, 140, 16, 1, "#5f6e76")
+  R(300, 149, 16, 1, "#5f6e76")
+  R(306, 144, 4, 4, "#f0ba65")                                     // ring knocker
+  R(307, 145, 2, 2, "#1b110a")
+  R(300, 131, 16, 2, "#3b2616")                                    // lintel
+  R(303, 131, 1, 1, "#4ecdc4")
+  R(306, 131, 1, 1, "#4ecdc4")
+  R(309, 131, 1, 1, "#4ecdc4")
+  R(312, 131, 1, 1, "#4ecdc4")
+
+  // Windows with shutters and warm glow
+  RM(270, 135, 18, 14, "rgba(240, 186, 101, 0.10)")
+  RM(272, 137, 14, 10, "#2a1a0f")                                  // frame
+  RM(274, 138, 10, 8, "#f0ba65")
+  RM(276, 139, 6, 6, "#ffdf9e")
+  RM(278, 138, 2, 8, "#2a1a0f")
+  RM(274, 141, 10, 1, "#2a1a0f")
+  RM(270, 137, 2, 10, "#1b110a")                                   // shutters
+  RM(286, 137, 2, 10, "#1b110a")
+
+  // Raven Clan banners flanking the door
+  var banners = [287, 323]
+  for (var bn = 0; bn < banners.length; bn++) {
+    var bx = banners[bn]
+    R(bx - 1, 131, 9, 1, "#5a3b24")                                // rod
+    R(bx, 132, 7, 15, "#10161f")                                   // cloth
+    R(bx, 132, 1, 15, "#1d2a38")
+    R(bx, 132, 7, 1, "#aebcc4")
+    R(bx, 146, 3, 2, "#10161f")                                    // swallowtail
+    R(bx + 4, 146, 3, 2, "#10161f")
+    R(bx + 3, 146, 1, 1, "#0a0e14")
+    R(bx, 147, 3, 1, "#4ecdc4")
+    R(bx + 4, 147, 3, 1, "#4ecdc4")
+    // mini raven
+    R(bx + 1, 135, 1, 1, "#eef3f4"); R(bx + 5, 135, 1, 1, "#eef3f4")
+    R(bx + 1, 136, 5, 1, "#eef3f4")
+    R(bx + 2, 137, 3, 2, "#eef3f4")
+    R(bx + 3, 137, 1, 1, "#4ecdc4")
+    R(bx + 3, 139, 1, 1, "#f0ba65")
+    R(bx + 2, 140, 3, 2, "#9fb0b9")
+  }
+
+  // Shield row under the eaves
+  var shieldXs = [263, 269, 345, 351]
+  var shieldCs = ["#38b2a6", "#8f2a24", "#d49b4b", "#2f6f9b"]
   for (var sh = 0; sh < shieldXs.length; sh++) {
-    ctx.fillStyle = (sh % 2 === 0) ? "#38b2a6" : "#d49b4b"
-    ctx.fillRect(shieldXs[sh], 130, 5, 5)
-    ctx.fillStyle = "#f0ba65"
-    ctx.fillRect(shieldXs[sh] + 2, 132, 1, 1)
+    R(shieldXs[sh], 130, 5, 5, shieldCs[sh])
+    R(shieldXs[sh], 130, 5, 1, "rgba(255, 255, 255, 0.25)")
+    R(shieldXs[sh] + 2, 132, 1, 1, "#e8e8e0")
   }
+
+  // Wall braziers beside the door
+  RM(295, 150, 2, 7, "#2a1a0f")
+  RM(294, 148, 4, 2, "#5a6870")
+  RM(295, 146, 2, 2, "#e67e22")
+  RM(295, 145, 2, 1, "#ffdf80")
 
   // Campfire Stone Ring
   ctx.fillStyle = "#38464d"
