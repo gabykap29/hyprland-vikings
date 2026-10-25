@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "source": "preset",
+  "condition": "rain",
+  "rainIntensity": 0.85,
+  "snowIntensity": 0.0,
+  "windSpeed": 1.25,
+  "fogDensity": 0.45,
+  "thunderFrequency": 0.35,
+  "auroraIntensity": 0.85,
+  "temperatureC": 6,
+  "location": "Kattegat · Midgard"
+}
