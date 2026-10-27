@@ -1,5 +1,6 @@
 .pragma library
 .import "../shared/Atmosphere.js" as Atmosphere
+.import "../shared/Carry.js" as Carry
 .import "Fighters.js" as Fighters
 .import "Palettes.js" as Palettes
 .import "Layout.js" as Layout
@@ -129,8 +130,15 @@ function renderDynamic(ctx, sim, weather, g, env) {
   }
 
   // Living fighters, banners included, back to front
-  var order = sim.fighters.slice().sort(function(a, b) { return a.lane - b.lane })
-  for (i = 0; i < order.length; i++) Fighters.drawFighter(ctx, order[i], t)
+  // (a fighter in the air is drawn last, in front of everyone)
+  function depth(f) { return (f.carry && f.carry.mode !== "swim" && f.carry.mode !== "climb") ? 1000 : f.lane }
+  var order = sim.fighters.slice().sort(function(a, b) { return depth(a) - depth(b) })
+  for (i = 0; i < order.length; i++) {
+    var fgt = order[i]
+    if (fgt.carry) Carry.draw(ctx, fgt, t, g.pw, function(x, foot) { Fighters.drawFighter(ctx, fgt, t, foot) })
+    else Fighters.drawFighter(ctx, fgt, t)
+  }
+  Carry.drawFx(ctx, sim)
 
   for (i = 0; i < sim.arrows.length; i++) drawArrow(ctx, sim.arrows[i], sim.arrows[i].fire && fx.fire !== false, t)
 

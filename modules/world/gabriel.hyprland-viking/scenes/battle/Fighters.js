@@ -163,11 +163,13 @@ function drawHead(P, look, vy) {
 }
 
 // ---- A standing / fighting warrior ----------------------------------------
-function drawFighter(ctx, f, t) {
+// `footY` overrides the lane for a fighter the pointer is carrying or that is swimming.
+function drawFighter(ctx, f, t, footY) {
   if (f.role === "banner") { drawBanner(ctx, f, t); return }
   var dir = f.dir > 0 ? 1 : -1
   var x = Math.round(f.x)
-  var foot = Math.round(f.lane)
+  var foot = Math.round(footY !== undefined ? footY : f.lane)
+  var flailing = f.state === "held" || f.state === "swim"
   var dyingP = (f.state === "dying") ? 1 - f.timer / 14 : 0
   if (dyingP >= 0.45) return                              // already lying down: drawCorpse() handles it
 
@@ -193,11 +195,13 @@ function drawFighter(ctx, f, t) {
   var cloak = look.cloak, cloakD = shade(cloak, -0.35), cloakL = shade(cloak, 0.18)
 
   // Shadow
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-  ctx.fillRect(x - 5, foot - 1, 10, 2)
+  if (!flailing) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
+    ctx.fillRect(x - 5, foot - 1, 10, 2)
+  }
 
   // Cloak
-  var flutter = walking ? ((step === 1 || step === 2) ? 1 : 0) : (Math.floor(t / 20 + f.id) % 2)
+  var flutter = flailing ? 1 : (walking ? ((step === 1 || step === 2) ? 1 : 0) : (Math.floor(t / 20 + f.id) % 2))
   P(-5 - flutter, vy + 6, 3 + flutter, 8, cloak)
   P(-5 - flutter, vy + 12, 3 + flutter, 2, cloakD, true)
   P(-3, vy + 6, 1, 2, cloakL, true)
@@ -206,6 +210,7 @@ function drawFighter(ctx, f, t) {
   var l1 = 0, l2 = 0
   if (walking) { l1 = (step === 0) ? -2 : (step === 2 ? 2 : 0); l2 = -l1 }
   else if (f.atkPhase === 2) { l1 = -1; l2 = 1 }          // lunge on the strike
+  else if (f.state === "held") { l1 = (Math.floor(t * 0.5) % 2 === 0) ? -1 : 1; l2 = -l1 }
   P(-2 + l1, vy + 12, 2, 3, look.pants)
   P(-2 + l1, foot - 2, 3, 2, LEATHER_D)
   P(0 + l2, vy + 12, 2, 3, shade(look.pants, 0.15))
@@ -228,7 +233,8 @@ function drawFighter(ctx, f, t) {
 
   // Pose: where the weapon hand is and how the blade points
   var pose = "diag", hx = 4, hy = vy + 8
-  if (f.state === "cheer") { pose = "up"; hx = 3; hy = vy + 3 }
+  if (flailing) { pose = "up"; hx = 3; hy = vy + 3 + ((Math.floor(t * (f.state === "held" ? 0.5 : 0.25)) % 2 === 0) ? -1 : 1) }
+  else if (f.state === "cheer") { pose = "up"; hx = 3; hy = vy + 3 }
   else if (f.atkPhase === 1) { pose = "up"; hx = 3; hy = vy + 4 }
   else if (f.atkPhase === 2) { pose = "horiz"; hx = 5; hy = vy + 9 }
   else if (f.atkPhase === 3) { pose = "down"; hx = 4; hy = vy + 11 }

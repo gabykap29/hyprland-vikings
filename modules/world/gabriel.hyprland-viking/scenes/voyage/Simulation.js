@@ -1,5 +1,6 @@
 .pragma library
 .import "../shared/Atmosphere.js" as Atmosphere
+.import "../shared/Carry.js" as Carry
 .import "Layout.js" as Layout
 
 // ============================================================================
@@ -20,6 +21,66 @@ function makeIsland(x, beacon) {
     speed: rnd(0.05, 0.08),
     beacon: beacon,
     trees: Math.floor(rnd(3, 8))
+  }
+}
+
+// ---- Pointer: lift a crewman out of the ship, drop him in the sea -----------------------
+// Crew slots in screen coordinates (the ship stands still, the world slides past).
+function slotX(i) { return Layout.SHIP.tx + Layout.CREW[i].x * Layout.SHIP.scale }
+function slotFoot() { return Layout.SHIP.ty + (Layout.SHIP.baseSy + 1) * Layout.SHIP.scale }
+
+function carryWorld(pw, ph) {
+  var S = Layout.SHIP
+  var hullY = Layout.GEOMETRY.groundY + 4
+  return {
+    minX: 6, maxX: pw - 6, minY: 14, maxY: ph - 4, drift: 0.1,
+    surface: function(x, y0) { return { kind: "water", y: Math.max(hullY, Math.min(y0, ph - 10)) } },
+    shore: function(x, y, e) {
+      return { x: Math.max(S.tx + 24 * S.scale, Math.min(x, S.tx + 72 * S.scale)), y: hullY, ex: e.homeX, ey: e.homeY }
+    }
+  }
+}
+
+function pickCrew(sim, px, py) {
+  for (var i = 0; i < sim.crew.length; i++) sim.crew[i].idx = i
+  return Carry.pick(px, py, sim.crew,
+    function(m) { return slotX(m.idx) },
+    function(m) { return slotFoot() })
+}
+
+function canGrab(sim, px, py) {
+  return !!sim && pickCrew(sim, px, py) !== null
+}
+
+function grab(sim, px, py) {
+  if (!sim) return false
+  var m = pickCrew(sim, px, py)
+  if (!m) return false
+  m.homeX = slotX(m.idx)
+  m.homeY = slotFoot()
+  Carry.grab(m, px, py, m.homeX, m.homeY)
+  m.bubbleTimer = 0
+  m.bubbleRune = ""
+  return true
+}
+
+function drag(sim, px, py, pw, ph) {
+  if (!sim) return
+  var W = carryWorld(pw, ph)
+  for (var i = 0; i < sim.crew.length; i++) Carry.drag(sim.crew[i], px, py, W)
+}
+
+function release(sim) {
+  if (!sim) return
+  for (var i = 0; i < sim.crew.length; i++) Carry.release(sim.crew[i])
+}
+
+function stepCarried(sim, m, W) {
+  var ev = Carry.step(m, W)
+  if (m.carry && ev === "splash") Carry.splash(sim, m.carry.x, m.carry.y)
+  if (!m.carry) {                                         // back aboard, with something to say about it
+    m.bubbleRune = "ᚠ"
+    m.bubbleTimer = 60
   }
 }
 
@@ -50,7 +111,7 @@ function createInitialState(pw, ph) {
   sim.whaleCount = 0
 
   sim.crew = Layout.CREW.map(function(c) {
-    return { job: c.job, bubbleRune: "", bubbleTimer: 0, cheer: 0 }
+    return { job: c.job, bubbleRune: "", bubbleTimer: 0, cheer: 0, carry: null }
   })
   return sim
 }
@@ -145,8 +206,11 @@ function step(sim, weather, geometry, env) {
     if (sim.event.t >= sim.event.T) sim.event = null
   }
 
+  Carry.stepFx(sim)
+  var carryW = carryWorld(pw, geometry.ph)
   for (i = 0; i < sim.crew.length; i++) {
     var m = sim.crew[i]
+    if (m.carry) { stepCarried(sim, m, carryW); continue }
     if (m.bubbleTimer > 0) {
       m.bubbleTimer--
       if (m.bubbleTimer === 0) m.bubbleRune = ""

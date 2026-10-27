@@ -39,5 +39,18 @@ var scene = {
 
   lightning: function(sim, x) {
     Simulation.triggerLightning(sim, x)
+  },
+
+  canGrab: function(sim, x, y, geometry, env) {
+    return env.effects.vikings !== false && Simulation.canGrab(sim, x, y, geometry.groundY)
+  },
+  grab: function(sim, x, y, geometry, env) {
+    return env.effects.vikings !== false && Simulation.grab(sim, x, y, geometry.pw, geometry.ph, geometry.groundY)
+  },
+  drag: function(sim, x, y, geometry) {
+    Simulation.drag(sim, x, y, geometry.pw, geometry.ph, geometry.groundY)
+  },
+  release: function(sim) {
+    Simulation.release(sim)
   }
 }

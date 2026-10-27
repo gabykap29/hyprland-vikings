@@ -1,5 +1,6 @@
 .pragma library
 .import "../shared/Atmosphere.js" as Atmosphere
+.import "../shared/Carry.js" as Carry
 .import "Layout.js" as Layout
 
 // ============================================================================
@@ -38,6 +39,9 @@ var ROLES = {
     archer: { hp: 2, dmg: 1, speed: 0.30, range: 0,  weapon: "bow",   helm: "cap",    shield: false, beard: 0, ranged: true }
   }
 }
+
+// The sea laps the beach west of here, above the sand.
+var SEA_X = 116
 
 function rnd(a, b) { return a + Math.random() * (b - a) }
 function pick(list) { return list[Math.floor(Math.random() * list.length)] }
@@ -161,8 +165,78 @@ function createInitialState(pw, ph) {
   return sim
 }
 
+// ---- Pointer: pick a fighter up, drop it on the field or in the sea ------------------
+function carryWorld(pw, ph) {
+  return {
+    minX: 6, maxX: pw - 6, minY: 20, maxY: ph - 4, drift: 0,
+    surface: function(x, y0) {
+      if (x < SEA_X && y0 < Layout.LANE_MIN) return { kind: "water", y: Math.max(y0, 154) }
+      return { kind: "ground", y: clamp(y0, Layout.LANE_MIN, Layout.LANE_MAX) }
+    },
+    shore: function(x) {
+      var sx = clamp(x, 8, SEA_X - 4)
+      return { x: sx, y: 167, ex: sx, ey: Layout.LANE_MIN + 3 }
+    }
+  }
+}
+
+function pickFighter(sim, px, py) {
+  return Carry.pick(px, py, sim.fighters,
+    function(f) { return f.x },
+    function(f) { return (f.role === "banner" || f.state === "dying") ? null : f.lane })
+}
+
+function canGrab(sim, px, py) {
+  return !!sim && pickFighter(sim, px, py) !== null
+}
+
+function grab(sim, px, py) {
+  if (!sim) return false
+  var f = pickFighter(sim, px, py)
+  if (!f) return false
+  Carry.grab(f, px, py, f.x, f.lane)
+  f.state = "held"
+  f.atkPhase = 0
+  f.targetId = -1
+  f.bubbleTimer = 0
+  f.bubbleRune = ""
+  return true
+}
+
+function drag(sim, px, py, pw, ph) {
+  if (!sim) return
+  var W = carryWorld(pw, ph)
+  for (var i = 0; i < sim.fighters.length; i++) if (sim.fighters[i].carry) Carry.drag(sim.fighters[i], px, py, W)
+}
+
+function release(sim) {
+  if (!sim) return
+  for (var i = 0; i < sim.fighters.length; i++) if (sim.fighters[i].carry) Carry.release(sim.fighters[i])
+}
+
+function stepCarried(sim, f, W) {
+  var c = f.carry
+  var ev = Carry.step(f, W)
+  if (f.carry) {
+    f.x = f.carry.x
+    f.lane = f.carry.y
+    f.dir = f.carry.dir
+    f.state = Carry.poseName(f.carry)
+    if (ev === "splash") Carry.splash(sim, f.carry.x, f.carry.y)
+    return
+  }
+  // Back on its feet: dust off and look for the nearest enemy again.
+  f.x = ev === "exit" ? c.toX : c.x
+  f.lane = clamp(ev === "exit" ? c.toY : c.y, Layout.LANE_MIN, Layout.LANE_MAX)
+  if (ev === "land") Carry.dust(sim, f.x, f.lane)
+  f.state = "advance"
+  f.cd = 24
+  f.dir = f.side === "norse" ? 1 : -1
+}
+
 // ---- Helpers ---------------------------------------------------------------
 function isAlive(f) { return f.state !== "dying" && f.hp > 0 }
+function isTargetable(f) { return isAlive(f) && !f.carry }
 function isCombatant(f) { return f.role !== "banner" }
 
 function nearestEnemy(sim, f) {
@@ -171,7 +245,7 @@ function nearestEnemy(sim, f) {
   var leaderish = (f.role === "leader" || f.role === "thegn")
   for (var i = 0; i < sim.fighters.length; i++) {
     var o = sim.fighters[i]
-    if (o.side === f.side || !isCombatant(o) || !isAlive(o)) continue
+    if (o.side === f.side || !isCombatant(o) || !isTargetable(o)) continue
     var d = Math.abs(o.x - f.x) + Math.abs(o.lane - f.lane) * 1.6
     // Spread the fight out: avoid piling onto an enemy others are already facing
     var crowd = 0
@@ -233,7 +307,7 @@ function resolveStrike(sim, f) {
   if (f.weapon === "bow") { shootArrow(sim, f); return }
   var tgt = null
   for (var i = 0; i < sim.fighters.length; i++) if (sim.fighters[i].id === f.targetId) tgt = sim.fighters[i]
-  if (!tgt || !isAlive(tgt)) return
+  if (!tgt || !isTargetable(tgt)) return
   if (Math.abs(tgt.x - f.x) > f.range + 3 || Math.abs(tgt.lane - f.lane) > 6) return
   var hasShield = tgt.shield !== null && tgt.role !== "banner"
   var facing = (tgt.dir === -f.dir)
@@ -254,7 +328,7 @@ function resolveStrike(sim, f) {
 function shootArrow(sim, f) {
   var tgt = null
   for (var i = 0; i < sim.fighters.length; i++) if (sim.fighters[i].id === f.targetId) tgt = sim.fighters[i]
-  if (!tgt || !isAlive(tgt)) return
+  if (!tgt || !isTargetable(tgt)) return
   var x0 = f.x + f.dir * 5
   var y0 = f.lane - 11
   var x1 = tgt.x + rnd(-6, 6)
@@ -266,7 +340,7 @@ function shootArrow(sim, f) {
 function landArrow(sim, a) {
   for (var i = 0; i < sim.fighters.length; i++) {
     var o = sim.fighters[i]
-    if (o.side === a.side || !isCombatant(o) || !isAlive(o)) continue
+    if (o.side === a.side || !isCombatant(o) || !isTargetable(o)) continue
     if (Math.abs(o.x - a.x1) < 5 && Math.abs((o.lane - 6) - a.y1) < 7) {
       var arrowDir = a.x1 >= a.x0 ? 1 : -1
       var facingArrow = o.shield !== null && o.dir === -arrowDir
@@ -289,7 +363,7 @@ function lightning(sim, x) {
   spawnFx(sim, "spark", bx, Layout.LANE_MAX - 8, 14)
   for (var i = 0; i < sim.fighters.length; i++) {
     var f = sim.fighters[i]
-    if (!isCombatant(f) || !isAlive(f) || Math.abs(f.x - bx) > 20) continue
+    if (!isCombatant(f) || !isTargetable(f) || Math.abs(f.x - bx) > 20) continue
     if (f.side === "saxon") {
       damage(sim, f, 4, f.x >= bx ? 1 : -1, null)
       sim.kills.norse += (f.state === "dying") ? 1 : 0
@@ -317,7 +391,7 @@ function pickStrikeX(sim) {
 }
 
 // ---- Fighter AI --------------------------------------------------------------
-function updateFighter(sim, f, env) {
+function updateFighter(sim, f, env, carryW) {
   if (f.hitFlash > 0) f.hitFlash--
   if (f.blockFlash > 0) f.blockFlash--
   if (f.cd > 0) f.cd--
@@ -326,6 +400,7 @@ function updateFighter(sim, f, env) {
     if (f.bubbleTimer === 0) f.bubbleRune = ""
   }
   if (f.role === "banner") return
+  if (f.carry) { stepCarried(sim, f, carryW); return }
 
   if (f.state === "dying") {
     f.timer--
@@ -387,7 +462,7 @@ function updateFighter(sim, f, env) {
   // Separation: nobody stands inside another fighter's sprite
   for (var i = 0; i < sim.fighters.length; i++) {
     var o = sim.fighters[i]
-    if (o === f || !isCombatant(o) || !isAlive(o)) continue
+    if (o === f || !isCombatant(o) || !isTargetable(o)) continue
     var ox = Math.abs(o.x - f.x), ol = o.lane - f.lane
     if (ox < 8 && Math.abs(ol) < 5 && o.id !== f.targetId) {
       f.lane = clamp(f.lane + (ol > 0 ? -0.35 : 0.35) + (ol === 0 ? (f.id % 2 ? 0.2 : -0.2) : 0), Layout.LANE_MIN, Layout.LANE_MAX)
@@ -428,7 +503,9 @@ function step(sim, weather, geometry, env) {
   Atmosphere.step(sim, weather, sim.tick, geometry.pw, geometry.ph, Layout.LANE_MIN, Layout.LANE_MAX + 6)
 
   var i
-  for (i = 0; i < sim.fighters.length; i++) updateFighter(sim, sim.fighters[i], env)
+  var carryW = carryWorld(geometry.pw, geometry.ph)
+  for (i = 0; i < sim.fighters.length; i++) updateFighter(sim, sim.fighters[i], env, carryW)
+  Carry.stepFx(sim)
 
   // Remove the dead from the line and lay them on the field
   var live = []
@@ -553,7 +630,7 @@ function stepRavens(sim, geometry) {
       var disturbed = false
       for (var k = 0; k < sim.fighters.length; k++) {
         var f = sim.fighters[k]
-        if (isCombatant(f) && isAlive(f) && Math.abs(f.x - rv.x) < 14 && Math.abs(f.lane - rv.y - 5) < 8) disturbed = true
+        if (isCombatant(f) && isTargetable(f) && Math.abs(f.x - rv.x) < 14 && Math.abs(f.lane - rv.y - 5) < 8) disturbed = true
       }
       if (rv.timer <= 0 || disturbed) {
         rv.state = "fly"

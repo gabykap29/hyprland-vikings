@@ -24,7 +24,13 @@ var scene = {
   step: function(sim, weather, geometry, env) { /* un tick de simulación (24/s) */ },
   renderBackdrop: function(ctx, geometry, env) { /* parte estática */ },
   renderDynamic: function(ctx, sim, weather, geometry, env) { /* parte animada */ },
-  lightning: function(sim, x) { /* opcional: reacción al clic / tormenta */ }
+  lightning: function(sim, x) { /* opcional: reacción al clic / tormenta */ },
+
+  // Opcionales: personajes que el puntero puede levantar y soltar (ver "Arrastrar")
+  canGrab: function(sim, x, y, geometry, env) { return false },  // ¿hay alguien bajo el cursor?
+  grab:    function(sim, x, y, geometry, env) { return false },  // true si levantó a alguien
+  drag:    function(sim, x, y, geometry) { },
+  release: function(sim) { }
 }
 ```
 
@@ -34,6 +40,22 @@ var scene = {
 .import "miEscena/Scene.js" as MiEscena
 var SCENES = [Valhalla.scene, MiEscena.scene]
 ```
+
+## Arrastrar personajes
+
+`shared/Carry.js` hace el trabajo: `grab` le pone un registro `carry` a la entidad, `step`
+la hace caer con gravedad, y si cae al agua nada hasta la orilla y trepa (`"land"`,
+`"splash"`, `"exit"`). Cada escena solo aporta:
+
+* un `carryWorld()` que dice dónde se puede aterrizar (`surface(x, y0)` → suelo o agua) y a dónde
+  nadar (`shore(x, y, entidad)`);
+* en `step`: si `e.carry`, llamar `Carry.step(e, W)`, copiar la posición a la entidad y, al
+  terminar, devolverla a su comportamiento normal;
+* en el renderer: si `e.carry`, dibujarla con `Carry.draw(ctx, e, t, pw, function(x, foot) {...})`
+  (el nadador es el mismo sprite hundido bajo un `clip`) y llamar a `Carry.drawFx` para salpicaduras;
+* los estados de sprite `"held"` (en el aire) y `"swim"` (en el agua).
+
+Mientras `carry` está activo la entidad no combate ni es objetivo de nadie.
 
 ## Qué recibe tu escena
 

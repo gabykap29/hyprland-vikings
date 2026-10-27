@@ -1,6 +1,7 @@
 .pragma library
 .import "../shared/Atmosphere.js" as Atmosphere
 .import "../valhalla/EntityRenderer.js" as Ships
+.import "../shared/Carry.js" as Carry
 .import "../valhalla/Palettes.js" as Palettes
 .import "Layout.js" as Layout
 
@@ -182,6 +183,35 @@ function drawBubble(ctx, x, y, rune) {
   ctx.fillText(rune, x + 2, y + 8)
 }
 
+// A crewman as the sprite renderer wants him.
+function crewSprite(c, state) {
+  return {
+    x: c.x, dir: -1, role: c.role, weapon: c.weapon, state: state,
+    cloakColor: "#14202e", tunicColor: c.tunic, trimColor: "#f0ba65",
+    hairColor: c.hair, shieldColor: "#4ecdc4", bubbleRune: ""
+  }
+}
+
+// Crewmen the pointer lifted out of the ship, in front of everything on the water.
+function drawOverboard(ctx, sim, fx, t, pw) {
+  if (fx.vikings === false) return
+  var S = Layout.SHIP
+  for (var m = 0; m < sim.crew.length; m++) {
+    var st = sim.crew[m]
+    if (!st.carry) continue
+    var vk = crewSprite(Layout.CREW[m], Carry.poseName(st.carry))
+    vk.dir = st.carry.dir
+    Carry.draw(ctx, st, t, pw, function(x, foot) {
+      ctx.save()
+      ctx.translate(x, foot)
+      ctx.scale(S.scale, S.scale)
+      vk.x = 0
+      Ships.drawPixelViking(ctx, vk, t, 0)
+      ctx.restore()
+    })
+  }
+}
+
 function drawShip(ctx, sim, weather, fx, t) {
   var S = Layout.SHIP
   var swell = Math.min(3, 0.6 + weather.rainIntensity * 1.2 + Math.abs(weather.windSpeed) * 0.4 + weather.thunderFrequency * 0.5)
@@ -212,13 +242,9 @@ function drawShip(ctx, sim, weather, fx, t) {
     for (var m = 0; m < Layout.CREW.length; m++) {
       var c = Layout.CREW[m]
       var st = sim.crew[m]
+      if (st.carry) continue
       var pull = c.job === "rower" && wavePhase(t, c.stroke) > 0 ? 1 : 0
-      var vk = {
-        x: c.x, dir: -1, role: c.role, weapon: c.weapon,
-        state: (c.job === "lookout" && st.cheer > 0) ? "cheer" : c.state,
-        cloakColor: "#14202e", tunicColor: c.tunic, trimColor: "#f0ba65",
-        hairColor: c.hair, shieldColor: "#4ecdc4", bubbleRune: ""
-      }
+      var vk = crewSprite(c, (c.job === "lookout" && st.cheer > 0) ? "cheer" : c.state)
       Ships.drawPixelViking(ctx, vk, t, sy + 1 + pull)
     }
     ctx.restore()
@@ -230,7 +256,7 @@ function drawShip(ctx, sim, weather, fx, t) {
     ctx.fillRect(81, sy + 6, 2, 4)
 
     for (var b = 0; b < sim.crew.length; b++) {
-      if (sim.crew[b].bubbleTimer > 0 && sim.crew[b].bubbleRune.length > 0) {
+      if (!sim.crew[b].carry && sim.crew[b].bubbleTimer > 0 && sim.crew[b].bubbleRune.length > 0) {
         drawBubble(ctx, Layout.CREW[b].x - 5, sy - 31, sim.crew[b].bubbleRune)
       }
     }
@@ -304,6 +330,9 @@ function renderDynamic(ctx, sim, weather, g, env) {
     ctx.fillStyle = "rgba(235, 248, 255, " + (0.45 + 0.4 * ((i + t) % 2)).toFixed(2) + ")"
     ctx.fillRect(bowX - 8 + i * 2, sprayY, 2, 1)
   }
+
+  drawOverboard(ctx, sim, fx, t, w)
+  Carry.drawFx(ctx, sim)
 
   Atmosphere.drawFog(ctx, w, t, weather.fogDensity, 130)
   Atmosphere.drawRain(ctx, sim, weather)

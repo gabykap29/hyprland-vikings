@@ -305,7 +305,7 @@ Scope {
   }
 
   // ========================================================================
-  // WAYLAND BACKGROUND LAYER (Renders behind all Hyprland windows & HUD bar)
+  // WAYLAND BACKGROUND LAYER (Bottom layer: above other wallpapers so it gets the pointer, below windows & HUD bar)
   // ========================================================================
   Variants {
     model: Quickshell.screens
@@ -319,7 +319,7 @@ Scope {
       color: "transparent"
 
       WlrLayershell.namespace: "hyprland-viking-world"
-      WlrLayershell.layer: WlrLayer.Background
+      WlrLayershell.layer: WlrLayer.Bottom
       WlrLayershell.exclusionMode: ExclusionMode.Ignore
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
@@ -391,13 +391,49 @@ Scope {
           }
         }
 
-        // Left-click on the empty desktop summons Thor's lightning (if enabled)
+        // Pointer: drag a character (scene.grab/drag/release), or left-click on the
+        // empty desktop to summon Thor's lightning (if enabled)
         MouseArea {
+          id: pointer
           anchors.fill: parent
           acceptedButtons: Qt.LeftButton
+          hoverEnabled: true
+
+          property bool carrying: false
+          property bool grabbed: false      // this press picked someone up, so it is not a lightning click
+          property bool overCharacter: false
+          readonly property bool interactive: typeof root.scene.grab === "function"
+
+          cursorShape: carrying ? Qt.ClosedHandCursor : (overCharacter ? Qt.OpenHandCursor : Qt.ArrowCursor)
+
+          function worldX(mouse) { return (mouse.x / width) * root.pw }
+          function worldY(mouse) { return (mouse.y / height) * root.ph }
+
+          function letGo() {
+            if (!carrying) return
+            carrying = false
+            root.scene.release(root.sim)
+          }
+
+          onPressed: function(mouse) {
+            carrying = interactive && root.scene.grab(root.sim, worldX(mouse), worldY(mouse), root.geometry, root.env)
+            grabbed = carrying
+          }
+          onPositionChanged: function(mouse) {
+            if (!interactive) return
+            if (carrying) {
+              root.scene.drag(root.sim, worldX(mouse), worldY(mouse), root.geometry)
+              dynamicWorldCanvas.requestPaint()
+            } else {
+              overCharacter = root.scene.canGrab(root.sim, worldX(mouse), worldY(mouse), root.geometry, root.env)
+            }
+          }
+          onExited: overCharacter = false
+          onReleased: letGo()
+          onCanceled: letGo()
           onClicked: function(mouse) {
-            if (!root.cfg.effects.lightning) return
-            root.scene.lightning(root.sim, Math.floor((mouse.x / width) * root.pw))
+            if (!root.cfg.effects.lightning || grabbed) return
+            root.scene.lightning(root.sim, Math.floor(worldX(mouse)))
           }
         }
       }

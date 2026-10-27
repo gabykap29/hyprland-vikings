@@ -1,4 +1,5 @@
 .pragma library
+.import "../shared/Carry.js" as Carry
 
 // ============================================================================
 // WorldSimulation.js
@@ -6,6 +7,73 @@
 // ============================================================================
 
 var RUNES = ["ᚠ", "ᚨ", "ᛏ", "ᛟ", "ᛋ", "ᛒ", "ᛞ"]
+
+// The pier starts here: west of it is open water, east of it the settlement.
+var PIER_X = 76
+
+// Where a viking let go of by the pointer can land, swim to and climb out.
+function carryWorld(pw, ph, groundY) {
+  return {
+    minX: 6, maxX: pw - 6, minY: 14, maxY: ph - 6, drift: 0,
+    surface: function(x) {
+      return x < PIER_X ? { kind: "water", y: groundY + 7 } : { kind: "ground", y: groundY }
+    },
+    shore: function(x, y) {
+      return { x: PIER_X - 3, y: y, ex: PIER_X + 6, ey: groundY }
+    }
+  }
+}
+
+function pickViking(sim, px, py, groundY) {
+  return Carry.pick(px, py, sim.vikings,
+    function(v) { return v.x },
+    function(v) { return v.state === "dying" ? null : groundY })
+}
+
+function canGrab(sim, px, py, groundY) {
+  return !!sim && pickViking(sim, px, py, groundY) !== null
+}
+
+function grab(sim, px, py, pw, ph, groundY) {
+  if (!sim) return false
+  var vk = pickViking(sim, px, py, groundY)
+  if (!vk) return false
+  Carry.grab(vk, px, py, vk.x, groundY)
+  vk.state = "held"
+  vk.bubbleRune = ""
+  return true
+}
+
+function drag(sim, px, py, pw, ph, groundY) {
+  if (!sim) return
+  var W = carryWorld(pw, ph, groundY)
+  for (var i = 0; i < sim.vikings.length; i++) Carry.drag(sim.vikings[i], px, py, W)
+}
+
+function release(sim) {
+  if (!sim) return
+  for (var i = 0; i < sim.vikings.length; i++) Carry.release(sim.vikings[i])
+}
+
+// Advances one carried viking; true while the pointer or the water still has it.
+function stepCarried(sim, vk, W, groundY) {
+  var c = vk.carry
+  var ev = Carry.step(vk, W)
+  if (vk.carry) {
+    vk.x = vk.carry.x
+    vk.dir = vk.carry.dir
+    vk.state = Carry.poseName(vk.carry)
+    if (ev === "splash") Carry.splash(sim, vk.carry.x, vk.carry.y)
+    return
+  }
+  // Back on solid ground: shake it off and carry on with the day.
+  vk.x = ev === "exit" ? c.toX : c.x
+  if (ev === "land") Carry.dust(sim, vk.x, groundY)
+  vk.targetX = vk.x
+  vk.state = "walk"
+  vk.timer = 30
+  vk.bubbleRune = ""
+}
 
 function createInitialState(pw, ph) {
   var stars = []
@@ -218,7 +286,7 @@ function triggerLightning(sim, customX) {
   sim.runeGlowBoost = 1.0
 
   for (var i = 0; i < sim.vikings.length; i++) {
-    if (Math.random() < 0.75) {
+    if (!sim.vikings[i].carry && Math.random() < 0.75) {
       sim.vikings[i].state = "cheer"
       sim.vikings[i].timer = 55
       sim.vikings[i].bubbleRune = "ᛏ"
@@ -319,8 +387,11 @@ function stepSimulation(sim, weather, pw, ph, groundY, waterY) {
   }
 
   // Vikings AI State Machine
+  Carry.stepFx(sim)
+  var carryW = carryWorld(pw, ph, groundY)
   for (var v = 0; v < sim.vikings.length; v++) {
     var vk = sim.vikings[v]
+    if (vk.carry) { stepCarried(sim, vk, carryW, groundY); continue }
     if (vk.chatCooldown > 0) vk.chatCooldown -= 1
     vk.timer -= 1
 

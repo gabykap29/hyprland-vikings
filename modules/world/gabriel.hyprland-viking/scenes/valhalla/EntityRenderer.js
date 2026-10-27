@@ -1,5 +1,6 @@
 .pragma library
 .import "Palettes.js" as Palettes
+.import "../shared/Carry.js" as Carry
 
 // ============================================================================
 // EntityRenderer.js
@@ -29,6 +30,7 @@ function drawPixelViking(ctx, vk, tickCount, groundY) {
   var x = Math.round(vk.x)
   var dir = vk.dir > 0 ? 1 : -1
   var walking = vk.state === "walk"
+  var flailing = vk.state === "held" || vk.state === "swim"   // let go of by the pointer
   var step = walking ? (Math.floor(tickCount * 0.25) % 4) : 0
   var bob = (walking && (step === 1 || step === 3)) ? -1 : 0
   if (!walking && Math.floor(tickCount / 28) % 4 === 3) bob = 1   // slow breathing
@@ -59,13 +61,16 @@ function drawPixelViking(ctx, vk, tickCount, groundY) {
   else if (vk.state === "chat") armY = tick15 ? -2 : 0
   else if (vk.state === "pray") { armUp = true; armY = 1 }
   else if (walking) armY = (step === 0) ? 1 : (step === 2 ? -1 : 0)
+  else if (flailing) { armUp = true; armY = (Math.floor(tickCount * (vk.state === "held" ? 0.5 : 0.25)) % 2 === 0) ? -1 : 1 }
 
   // ---- Ground shadow (not outlined) --------------------------------------
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-  ctx.fillRect(x - 5, groundY - 1, 10, 2)
+  if (!flailing) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
+    ctx.fillRect(x - 5, groundY - 1, 10, 2)
+  }
 
   // ---- Cloak (behind body), flutters with movement -------------------------
-  var flutter = walking ? ((step === 1 || step === 2) ? 1 : 0) : (Math.floor(tickCount / 20) % 2)
+  var flutter = (walking || flailing) ? ((step === 1 || step === 2 || flailing) ? 1 : 0) : (Math.floor(tickCount / 20) % 2)
   var cloakLen = role === "seer" ? 11 : 8
   P(-5 - flutter, vy + 6, 3 + flutter, cloakLen, cloak)
   P(-5 - flutter, vy + 6 + cloakLen - 2, 3 + flutter, 2, cloakD, true)
@@ -74,6 +79,7 @@ function drawPixelViking(ctx, vk, tickCount, groundY) {
   // ---- Legs & boots -------------------------------------------------------
   var l1 = 0, l2 = 0
   if (walking) { l1 = (step === 0) ? -2 : (step === 2 ? 2 : 0); l2 = -l1 }
+  else if (vk.state === "held") { l1 = (Math.floor(tickCount * 0.5) % 2 === 0) ? -1 : 1; l2 = -l1 }
   var legTop = vy + 12
   P(-2 + l1, legTop, 2, 3, "#3b2f26")                // back leg
   P(-2 + l1, groundY - 2, 3, 2, LEATHER_D)
@@ -487,8 +493,11 @@ function renderDynamicWorld(ctx, sim, weather, w, h, groundY, waterY, env) {
 
   // 8. Autonomous Vikings
   for (var vi = 0; fx.vikings !== false && vi < sim.vikings.length; vi++) {
-    drawPixelViking(ctx, sim.vikings[vi], t, groundY)
+    var vkr = sim.vikings[vi]
+    if (vkr.carry) Carry.draw(ctx, vkr, t, w, function(x, foot) { drawPixelViking(ctx, vkr, t, foot) })
+    else drawPixelViking(ctx, vkr, t, groundY)
   }
+  Carry.drawFx(ctx, sim)
 
   // 9. Ravens (Huginn & Muninn)
   for (var ri = 0; fx.ravens !== false && ri < sim.ravens.length; ri++) {
