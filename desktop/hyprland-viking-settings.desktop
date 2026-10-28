@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Hyprland Viking
+GenericName=Live Wallpaper Settings
+Comment=Configura el wallpaper pixel art: escena, clima, hora y efectos
+Exec=hyprland-viking-ctl settings
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=viking;wallpaper;fondo;valhalla;clima;

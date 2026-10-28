@@ -88,8 +88,8 @@ print(json.dumps(out, ensure_ascii=False, indent=2))
 mkdir -p "$(dirname "$WEATHER_FILE")"
 printf '%s\n' "$PAYLOAD" > "$WEATHER_FILE"
 
-if command -v omarchy-shell >/dev/null 2>&1; then
-  omarchy-shell gabriel.hyprland-viking setWeather "$(printf '%s' "$PAYLOAD" | tr -d '\n')" >/dev/null 2>&1 || true
+if command -v qs >/dev/null 2>&1; then
+  qs -c "${HYPRLAND_VIKING_QS_CONFIG:-hyprland-viking}" ipc call gabriel.hyprland-viking setWeather "$(printf '%s' "$PAYLOAD" | tr -d '\n')" >/dev/null 2>&1 || true
 fi
 
 echo "✅ Clima sincronizado en $WEATHER_FILE:"

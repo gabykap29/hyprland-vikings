@@ -1,37 +1,36 @@
 # ᛟ Hyprland Viking — Escritorio Pixel Art Nórdico Configurable
 
-Entorno completo de escritorio inspirado en **Assassin's Creed Valhalla** para **Omarchy + Hyprland**, con una **arquitectura modular**: tema visual nórdico, barra HUD de brújula, menú con medallones rúnicos del *Elder Futhark* y un motor de **Live Wallpaper 16-bit Pixel Art** en tiempo real con **panel de configuración**: elegí la visualización, el clima, la hora del día, los efectos y tu ciudad.
+Live Wallpaper **16-bit Pixel Art** en tiempo real inspirado en **Assassin's Creed Valhalla** para **Hyprland**, hecho con **Quickshell** (funciona en cualquier distro, sin Omarchy). Incluye un **panel de configuración**: elegí la visualización, el clima, la hora del día, los efectos y tu ciudad. Opcionalmente, pantalla de bloqueo (hyprlock) y fastfetch a juego.
 
-> Antes llamado *Omarchy Valhalla*. El instalador migra automáticamente el plugin `gabriel.valhalla-world` al nuevo `gabriel.hyprland-viking`.
+## 📋 Requisitos
+
+* [Hyprland](https://hyprland.org)
+* [Quickshell](https://quickshell.org) (comando `qs`). **CachyOS / Arch**: `sudo pacman -S quickshell` · Nix: `nixpkgs#quickshell` · otras distros: [compilarlo](https://quickshell.org/docs/guide/install-setup/) (en Debian Trixie funciona compilándolo con `-DCRASH_HANDLER=OFF -DINSTALL_QML_PREFIX=lib/qt6/qml`, y necesita `qt6-declarative-private-dev`, `qt6-shadertools-dev`, `libjemalloc-dev` y `libcli11-dev`).
+* Fuente **Noto Sans Runic** (para las runas): CachyOS/Arch `noto-fonts` · Debian/Ubuntu `fonts-noto-core`.
+* Opcionales: `hyprlock`, `fastfetch`, `curl` y `python3` (clima real).
 
 ---
 
 ## 📸 Vista Previa
 
-### 1. Live Wallpaper 16-Bit Pixel Art + HUD Bar
 ![Valhalla Pixel World](assets/screenshots/pixel-viking-world.png)
-
-### 2. Menú con Medallones Rúnicos Elder Futhark (`gabriel.menu`)
-![Valhalla Rune Menu](assets/screenshots/rune-menu.png)
-
-### 3. Barra Superior HUD estilo Brújula (`gabriel.bar` + `gabriel.workspaces`)
-![Valhalla HUD Bar](assets/screenshots/hud-bar.png)
 
 ---
 
 ## ⚙️ Panel de Configuración
 
-Abrilo desde el menú de Omarchy (`Super + Alt + Space` → **Style** → **Hyprland Viking** → **Configuración**) o desde la terminal:
+Abrilo desde la terminal (o asignale un atajo en tu `hyprland.conf`):
 
 ```bash
-~/.config/omarchy/plugins/gabriel.hyprland-viking/hyprland-viking-ctl settings
+hyprland-viking-ctl settings
+# atajo de ejemplo: bind = SUPER ALT, V, exec, hyprland-viking-ctl settings
 ```
 
 `Esc` o clic fuera del panel lo cierra. Los cambios se aplican al instante y se guardan en `~/.config/hyprland-viking/config.json` (el instalador nunca lo pisa).
 
 | Sección | Qué configura |
 |---|---|
-| **Visualización** | Escena activa: *Valhalla · Fiordo del Cuervo* (por defecto), *Batalla · Clan del Cuervo vs Sajones* o *Travesía · Drakkar en alta mar*. Se agregan más sin tocar el motor, ver [`scenes/README.md`](modules/world/gabriel.hyprland-viking/scenes/README.md). |
+| **Visualización** | Escena activa: *Valhalla · Fiordo del Cuervo* (por defecto), *Batalla · Clan del Cuervo vs Sajones* o *Travesía · Drakkar en alta mar*. Se agregan más sin tocar el motor, ver [`scenes/README.md`](quickshell/hyprland-viking/scenes/README.md). |
 | **Clima y ciudad** | Modo manual (despejado / lluvia / tormenta / nieve) o automático, y tu ciudad. |
 | **Hora del día** | Automático (según la hora real), noche, amanecer, día o atardecer. |
 | **Efectos** | Los de la escena activa: aurora, relámpagos, cuervos, vikingos, estrellas, incendios, flechas y fauna marina; intensidad de la aurora y de lluvia/nieve. |
@@ -87,81 +86,58 @@ El drakkar del Clan del Cuervo surca el mar abierto, visto desde lejos: la tripu
 
 ---
 
-## 🏗️ Arquitectura Modular
+## 🏗️ Arquitectura
 
 ```text
 hyprland-viking/
-├── install.sh                         # Instalador modular por componentes (--all, --theme, --bar, --menu, --world, --configs)
-├── README.md                          # Documentación general y guía de arquitectura
+├── install.sh                         # Instalador (--world, --hyprlock, --fastfetch, --looknfeel)
 ├── assets/
-│   └── screenshots/                   # Capturas reales del entorno funcionando
+│   ├── backgrounds/                   # Wallpapers estáticos y en video
+│   └── screenshots/
 ├── scripts/
-│   ├── backup.sh                      # Respaldo automático de la configuración previa
-│   ├── uninstall.sh                   # Desinstalación limpia y restauración del backup
+│   ├── backup.sh                      # Respaldo de la configuración previa
+│   ├── uninstall.sh                   # Desinstalación y restauración
 │   └── weather-api-sync.sh            # Conector de clima real con Open-Meteo API
-└── modules/
-    ├── theme/
-    │   └── valhalla/                  # Paleta Raven Clan (Teal Aurora, Oro Animus, Pizarra Nórdica) y wallpapers
-    ├── bar/
-    │   ├── gabriel.bar/               # Barra HUD estilo AC Valhalla con cápsula central y diamantes dorados
-    │   └── gabriel.workspaces/        # Espacios de trabajo nombrados según los Nueve Reinos (MIDGARD, ASGARD, etc.)
-    ├── menu/
-    │   └── gabriel.menu/              # Menú del sistema con medallones de runas vikingas y buscador nativo de Apps
-    ├── world/
-    │   └── gabriel.hyprland-viking/   # Motor Live Wallpaper configurable (WlrLayer.Background)
-    │       ├── manifest.json          # Metadatos del plugin de servicio Quickshell
-    │       ├── Service.qml            # Orquestador: config, escena activa, IPC, capas Wayland
-    │       ├── hyprland-viking-ctl    # CLI sobre el IPC (settings, preset, scene, city, time...)
-    │       ├── config/
-    │       │   ├── Config.js          # Valores por defecto, validación y persistencia de ajustes
-    │       │   └── weather.default.json
-    │       ├── core/
-    │       │   ├── WeatherController.js # Normalizador de estado de clima y presets
-    │       │   └── TimeOfDay.js         # Resuelve auto/noche/amanecer/día/atardecer
-    │       ├── scenes/
-    │       │   ├── Registry.js        # Lista de visualizaciones disponibles
-    │       │   ├── README.md          # Cómo agregar una escena
-    │       │   ├── shared/Atmosphere.js # Estrellas, aurora, rayos, lluvia, nieve y niebla reutilizables
-    │       │   ├── battle/            # Escena de batalla: Clan del Cuervo vs sajones
-    │       │   │   ├── Scene.js, Layout.js, Palettes.js
-    │       │   │   ├── Backdrop.js, Renderer.js, Fighters.js
-    │       │   │   └── Simulation.js  # IA de combate, flechas, refuerzos y cuervos
-    │       │   ├── voyage/            # Escena de travesía: drakkar en alta mar
-    │       │   │   ├── Scene.js, Layout.js, Backdrop.js
-    │       │   │   └── Renderer.js, Simulation.js  # oleaje, tripulación, ballena, islas
-    │       │   └── valhalla/          # Escena por defecto
-    │       │       ├── Scene.js, Palettes.js
-    │       │       ├── BackdropRenderer.js  # Escenario estático (cielo, Langhús, forja, muelle)
-    │       │       ├── EntityRenderer.js    # Vikingos, drakkar, agua, clima, aurora
-    │       │       └── WorldSimulation.js   # IA de vikingos, cuervos y partículas
-    │       └── ui/                    # Panel de configuración (QML) y sus controles
-    └── configs/
-        ├── omarchy/                   # shell.json, extensiones de menú y branding ASCII
-        ├── hypr/                      # Bordes dorados/turquesa en looknfeel.lua y pantalla de bloqueo Hyprlock
-        └── fastfetch/                 # Arte ASCII del Clan del Cuervo y métricas con runas
+├── hypr/                              # hyprlock.conf y looknfeel.lua (bordes dorados/turquesa)
+├── fastfetch/                         # Arte ASCII del Clan del Cuervo
+└── quickshell/hyprland-viking/        # Live Wallpaper configurable (se carga con `qs -c hyprland-viking`)
+    ├── shell.qml                      # Punto de entrada de Quickshell
+    ├── Service.qml                    # Orquestador: config, escena activa, IPC, capas Wayland
+    ├── hyprland-viking-ctl            # CLI sobre el IPC (settings, preset, scene, city, time...)
+    ├── config/                        # Valores por defecto, validación y persistencia
+    ├── core/                          # Clima (WeatherController.js) y hora del día (TimeOfDay.js)
+    ├── scenes/                        # valhalla/, battle/, voyage/ + Registry.js (ver scenes/README.md)
+    └── ui/                            # Panel de configuración (QML) y sus controles
 ```
 
 ---
 
 ## 🚀 Instalación
 
-### Instalar todo el entorno (con backup automático)
 ```bash
-cd ~/omarchy-valhalla
+git clone <url-del-repo> hyprland-viking && cd hyprland-viking
 ./install.sh
 ```
 
-### Instalar módulos individuales
-Puedes instalar o actualizar únicamente los módulos que desees:
-```bash
-./install.sh --theme      # Solo el tema de colores y fondos
-./install.sh --bar        # Solo la barra HUD y los 9 Reinos
-./install.sh --menu       # Solo el menú con medallones rúnicos
-./install.sh --world      # Solo el Live Wallpaper 16-bit Pixel Art
-./install.sh --configs    # Solo las configs de Hyprland, Hyprlock y Fastfetch
+Instala el wallpaper, hyprlock y fastfetch (con respaldo previo). Después agregá a tu `hyprland.conf`:
+
+```ini
+exec-once = qs -c hyprland-viking
 ```
 
-### Desinstalar y restaurar estado original
+Asegurate de tener `~/.local/bin` en tu `PATH` para usar `hyprland-viking-ctl`.
+
+### Módulos individuales
+```bash
+./install.sh --world       # Solo el Live Wallpaper y su panel (requiere Quickshell)
+./install.sh --hyprlock    # Solo la pantalla de bloqueo y los fondos
+./install.sh --fastfetch   # Solo fastfetch
+./install.sh --looknfeel   # Copia ~/.config/hypr/viking-looknfeel.lua (opcional)
+```
+
+`looknfeel.lua` usa la configuración Lua de Hyprland y no se activa solo: incluilo desde tu configuración (por ejemplo `require("viking-looknfeel")`).
+
+### Desinstalar
 ```bash
 ./install.sh --uninstall
 ```
@@ -172,7 +148,7 @@ Puedes instalar o actualizar únicamente los módulos que desees:
 
 El clima tiene dos modos (sección **Clima y ciudad** del panel):
 
-* **Manual**: elegís despejado, lluvia, tormenta o nieve. También con `hyprland-viking-ctl preset <rain|storm|snow|clear>` o desde el menú de Omarchy.
+* **Manual**: elegís despejado, lluvia, tormenta o nieve. También con `hyprland-viking-ctl preset <rain|storm|snow|clear>`.
 * **Automático**: el clima lo define un proveedor externo que escribe en `~/.config/hyprland-viking/weather.json` (el plugin lo vigila en vivo). **Todavía no hay un proveedor elegido**: la ciudad que ingreses se guarda y se muestra como ubicación, lista para cuando se conecte uno.
 
 Mientras tanto podés usar el script de ejemplo [`scripts/weather-api-sync.sh`](scripts/weather-api-sync.sh), que consulta **Open-Meteo** (sin API key) por coordenadas y escribe ese archivo:
