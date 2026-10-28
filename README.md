@@ -158,3 +158,11 @@ Mientras tanto podés usar el script de ejemplo [`scripts/weather-api-sync.sh`](
 ```
 
 Solo tiene efecto con el modo **Automático** activado. Podés ejecutarlo cada 15 minutos con un timer de usuario o cron.
+
+---
+
+## 📄 Licencia
+
+El código se distribuye bajo la [Apache License 2.0](LICENSE).
+
+Los fondos de `assets/backgrounds/` **no** están cubiertos por esa licencia: algunos están inspirados en *Assassin's Creed Valhalla* (© Ubisoft) y pertenecen a sus respectivos autores. *Assassin's Creed* y *Valhalla* son marcas de Ubisoft; este proyecto es un trabajo de fans, sin relación con Ubisoft.
